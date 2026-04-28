@@ -42,7 +42,8 @@ class EtablissementController extends Controller
             })
             ->values();
 
-        return Inertia::render('Etablissements/Index', [
+        return Inertia::render('DEE/Etablissements/Index', [
+
             'etablissements' => $etablissements,
         ]);
     }

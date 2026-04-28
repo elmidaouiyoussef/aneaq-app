@@ -46,7 +46,8 @@ class ExpertController extends Controller
             })
             ->values();
 
-        return Inertia::render('Experts/Index', [
+        return Inertia::render('DEE/Experts/Index', [
+
             'experts' => $experts,
         ]);
     }

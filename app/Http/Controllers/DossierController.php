@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\CampagneEvaluation;
 use App\Models\Dossier;
 use App\Models\DossierExpert;
 use App\Models\Etablissement;
@@ -10,6 +9,7 @@ use App\Models\Expert;
 use App\Models\User;
 use App\Services\DossierStatusService;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -26,10 +26,8 @@ class DossierController extends Controller
 
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
-                $columns = $this->dossierColumns();
-
-                foreach (['reference', 'nom', 'statut', 'campagne', 'campagne_reference'] as $column) {
-                    if (in_array($column, $columns, true)) {
+                foreach (['reference', 'nom', 'statut', 'status', 'campagne', 'campagne_reference'] as $column) {
+                    if ($this->hasDossierColumn($column)) {
                         $q->orWhere($column, 'like', "%{$search}%");
                     }
                 }
@@ -40,23 +38,21 @@ class DossierController extends Controller
 
         $dossiers = $query
             ->get()
-            ->map(fn (Dossier $dossier) => $this->dossierPayload($dossier))
+            ->map(fn (Dossier $dossier) => $this->dossierPayload($dossier, true))
             ->values();
 
-        $stats = [
-            'dossiers' => Dossier::count(),
-            'visites_planifiees' => $this->hasDossierColumn('date_visite')
-                ? Dossier::whereNotNull('date_visite')->count()
-                : 0,
-            'documents' => $this->documentsTotalCount(),
-            'experts_affectes' => Schema::hasTable('dossier_experts')
-                ? DossierExpert::count()
-                : 0,
-        ];
-
-        return Inertia::render('Dossiers/Index', [
+        return Inertia::render('DEE/Dossiers/Index', [
             'dossiers' => $dossiers,
-            'stats' => $stats,
+            'stats' => [
+                'dossiers' => Dossier::count(),
+                'visites_planifiees' => $this->hasDossierColumn('date_visite')
+                    ? Dossier::whereNotNull('date_visite')->count()
+                    : 0,
+                'documents' => $this->documentsTotalCount(),
+                'experts_affectes' => Schema::hasTable('dossier_experts')
+                    ? DossierExpert::count()
+                    : 0,
+            ],
             'filters' => [
                 'search' => $search,
             ],
@@ -65,8 +61,8 @@ class DossierController extends Controller
 
     public function show(Dossier $dossier)
     {
-        return Inertia::render('Dossiers/Show', [
-            'dossier' => $this->dossierPayload($dossier),
+        return Inertia::render('DEE/Dossiers/Show', [
+            'dossier' => $this->dossierPayload($dossier, false),
             'experts' => $this->availableExpertsPayload(),
             'dossierExperts' => $this->dossierExpertsPayload($dossier),
             'documents' => $this->documentsPayload($dossier),
@@ -79,6 +75,8 @@ class DossierController extends Controller
             'description' => ['sometimes', 'nullable', 'string'],
             'observation' => ['sometimes', 'nullable', 'string'],
             'date_visite' => ['sometimes', 'nullable', 'date'],
+            'statut' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'status' => ['sometimes', 'nullable', 'string', 'max:255'],
         ]);
 
         $hasChanges = false;
@@ -98,11 +96,33 @@ class DossierController extends Controller
             $hasChanges = true;
         }
 
+        if ($request->has('statut') && $this->hasDossierColumn('statut')) {
+            $dossier->statut = $validated['statut'] ?? $dossier->statut;
+            $hasChanges = true;
+        }
+
+        if ($request->has('status') && $this->hasDossierColumn('status')) {
+            $dossier->status = $validated['status'] ?? $dossier->status;
+            $hasChanges = true;
+        }
+
+        if ($request->has('date_visite') && !empty($validated['date_visite'])) {
+            if ($this->hasDossierColumn('statut')) {
+                $dossier->statut = 'Date de visite planifiée';
+                $hasChanges = true;
+            }
+
+            if ($this->hasDossierColumn('status')) {
+                $dossier->status = 'Date de visite planifiée';
+                $hasChanges = true;
+            }
+        }
+
         if ($hasChanges) {
             $dossier->save();
         }
 
-        if ($request->has('date_visite')) {
+        if (class_exists(DossierStatusService::class)) {
             DossierStatusService::refresh($dossier->fresh());
         }
 
@@ -126,37 +146,32 @@ class DossierController extends Controller
             ->with('success', 'Dossier supprimé avec succès.');
     }
 
-    private function dossierPayload(Dossier $dossier): array
+    private function dossierPayload(Dossier $dossier, bool $forIndex = false): array
     {
-        $campagneId = $this->value($dossier, [
-            'campagne_evaluation_id',
-            'campagne_id',
-        ]);
+        $etablissement = $this->etablissementPayload($dossier);
+        $etablissementNom = $etablissement['nom'] ?? '—';
 
         $campagneReference = $this->value($dossier, [
             'campagne',
             'campagne_reference',
-        ]);
-
-        if (!$campagneReference && $campagneId) {
-            $campagneReference = CampagneEvaluation::query()
-                ->where('id', $campagneId)
-                ->value('reference');
-        }
-
-        $etablissement = $this->etablissementPayload($dossier);
+        ], '—');
 
         return [
             'id' => $dossier->id,
 
             'reference' => $this->value($dossier, ['reference'], '—'),
-            'nom' => $this->value($dossier, ['nom', 'name', 'titre'], $this->value($dossier, ['reference'], 'Dossier')),
 
-            'campagne_id' => $campagneId,
-            'campagne' => $campagneReference ?: '—',
-            'campagne_reference' => $campagneReference ?: '—',
+            'nom' => $this->value(
+                $dossier,
+                ['nom', 'name', 'titre'],
+                $this->value($dossier, ['reference'], 'Dossier')
+            ),
+
+            'campagne' => $campagneReference,
+            'campagne_reference' => $campagneReference,
 
             'statut' => $this->value($dossier, ['statut', 'status'], 'Établissement sélectionné'),
+            'status' => $this->value($dossier, ['status', 'statut'], 'Établissement sélectionné'),
 
             'description' => $this->value($dossier, ['description'], ''),
             'observation' => $this->value($dossier, ['observation', 'observations'], ''),
@@ -170,10 +185,11 @@ class DossierController extends Controller
             'created_at' => $this->formatDateDisplay($dossier->created_at),
             'updated_at' => $this->formatDateDisplay($dossier->updated_at),
 
-            'etablissement' => $etablissement,
+            'etablissement' => $forIndex ? $etablissementNom : $etablissement,
+            'etablissement_obj' => $etablissement,
 
             'etablissement_id' => $etablissement['id'] ?? null,
-            'etablissement_nom' => $etablissement['nom'] ?? '—',
+            'etablissement_nom' => $etablissementNom,
             'ville' => $etablissement['ville'] ?? '—',
             'universite' => $etablissement['universite'] ?? '—',
             'email' => $etablissement['email'] ?? '—',
@@ -187,6 +203,7 @@ class DossierController extends Controller
         }
 
         $query = Expert::query();
+
         $this->orderExperts($query);
 
         return $query
@@ -243,29 +260,43 @@ class DossierController extends Controller
             ->map(function ($item) use ($expertsById) {
                 $expert = $expertsById->get($item->expert_id);
 
+                $prenom = $expert ? $this->value($expert, ['prenom', 'first_name'], '') : '';
+                $nom = $expert ? $this->value($expert, ['nom', 'last_name', 'name'], '') : '';
+
+                $expertName = trim($prenom . ' ' . $nom);
+
+                if ($expertName === '') {
+                    $expertName = $expert
+                        ? $this->value($expert, ['name', 'nom'], 'Expert')
+                        : 'Expert';
+                }
+
                 return [
                     'id' => $item->id,
                     'dossier_id' => $item->dossier_id,
                     'expert_id' => $item->expert_id,
-                    'role_expert' => $this->value($item, ['role_expert'], 'expert'),
-                    'status' => $this->value($item, ['status'], 'en_attente_confirmation_dee'),
-                    'access_sent_at' => $this->formatDateDisplay($this->value($item, ['access_sent_at'])),
-                    'dee_confirmed_at' => $this->formatDateDisplay($this->value($item, ['dee_confirmed_at'])),
-                    'expert_confirmed_at' => $this->formatDateDisplay($this->value($item, ['expert_confirmed_at'])),
+
+                    'role_expert' => $this->value($item, ['role_expert', 'role'], 'expert'),
+                    'status' => $this->value($item, ['status', 'statut'], 'en_attente_confirmation_dee'),
+                    'statut' => $this->value($item, ['statut', 'status'], 'en_attente_confirmation_dee'),
 
                     'expert' => $expert ? [
                         'id' => $expert->id,
-                        'prenom' => $this->value($expert, ['prenom', 'first_name'], ''),
-                        'nom' => $this->value($expert, ['nom', 'last_name', 'name'], ''),
-                        'name' => trim(
-                            $this->value($expert, ['prenom', 'first_name'], '') . ' ' .
-                            $this->value($expert, ['nom', 'last_name', 'name'], '')
-                        ) ?: $this->value($expert, ['name', 'nom'], 'Expert'),
+                        'prenom' => $prenom,
+                        'nom' => $nom,
+                        'name' => $expertName,
                         'email' => $this->value($expert, ['email'], ''),
                         'ville' => $this->value($expert, ['ville', 'city'], ''),
                         'specialite' => $this->value($expert, ['specialite', 'specialité', 'domaine', 'discipline'], ''),
                         'etablissement' => $this->value($expert, ['etablissement', 'etablissement_nom', 'institution'], ''),
-                    ] : null,
+                    ] : [
+                        'id' => null,
+                        'name' => 'Expert supprimé',
+                        'email' => '',
+                        'ville' => '',
+                        'specialite' => '',
+                        'etablissement' => '',
+                    ],
                 ];
             })
             ->values();
@@ -273,81 +304,54 @@ class DossierController extends Controller
 
     private function documentsPayload(Dossier $dossier)
     {
-        $documentClass = '\\App\\Models\\DossierDocument';
+        $table = $this->documentsTable();
 
-        if (!class_exists($documentClass)) {
+        if (!$table) {
             return collect();
         }
 
-        $documentModel = new $documentClass();
-        $table = $documentModel->getTable();
-
-        if (!Schema::hasTable($table) || !Schema::hasColumn($table, 'dossier_id')) {
-            return collect();
-        }
-
-        $query = $documentClass::query()
+        $query = DB::table($table)
             ->where('dossier_id', $dossier->id);
 
-        $this->orderLatest($query, $table);
+        $this->orderLatestDb($query, $table);
 
         return $query
             ->get()
-            ->map(function ($document) {
-                $path = $this->value($document, [
-                    'path',
-                    'file_path',
-                    'fichier',
-                    'document_path',
-                    'url',
-                ]);
-
-                $url = $this->value($document, ['url'], null);
-
-                if (!$url && $path) {
-                    $url = Storage::url($path);
-                }
+            ->map(function ($document) use ($table) {
+                $path = $this->documentPath($document);
 
                 return [
                     'id' => $document->id,
-                    'nom' => $this->value($document, ['nom', 'name', 'filename', 'original_name'], 'Document'),
-                    'name' => $this->value($document, ['nom', 'name', 'filename', 'original_name'], 'Document'),
-                    'filename' => $this->value($document, ['filename', 'original_name', 'nom', 'name'], 'Document'),
-                    'type' => $this->value($document, ['type', 'document_type', 'categorie', 'category'], 'Document'),
-                    'document_type' => $this->value($document, ['document_type', 'type', 'categorie', 'category'], 'Document'),
-                    'url' => $url,
-                    'created_at' => $this->formatDateDisplay($this->value($document, ['created_at'])),
+                    'dossier_id' => $document->dossier_id ?? null,
+
+                    'type' => $this->objectValue($document, ['type', 'document_type'], 'document'),
+                    'titre' => $this->objectValue($document, ['titre', 'title', 'nom', 'name'], 'Document'),
+                    'nom' => $this->objectValue($document, ['nom', 'name', 'titre', 'title'], 'Document'),
+
+                    'original_name' => $this->objectValue($document, ['original_name', 'filename', 'file_name'], null),
+                    'mime_type' => $this->objectValue($document, ['mime_type'], null),
+                    'size' => $this->objectValue($document, ['size', 'file_size'], null),
+
+                    'path' => $path,
+                    'file_path' => $path,
+                    'url' => $this->fileUrl($path),
+
+                    'depose_par' => $this->objectValue($document, ['depose_par', 'uploaded_by_role'], '—'),
+                    'statut' => $this->objectValue($document, ['statut', 'status'], 'Déposé'),
+                    'status' => $this->objectValue($document, ['status', 'statut'], 'Déposé'),
+
+                    'created_at' => $this->formatDateDisplay($this->objectValue($document, ['created_at'])),
+                    'updated_at' => $this->formatDateDisplay($this->objectValue($document, ['updated_at'])),
+
+                    'table' => $table,
                 ];
             })
             ->values();
     }
 
-    private function deleteDossierDocuments(Dossier $dossier): void
-    {
-        $documentClass = '\\App\\Models\\DossierDocument';
-
-        if (!class_exists($documentClass)) {
-            return;
-        }
-
-        $documentModel = new $documentClass();
-        $table = $documentModel->getTable();
-
-        if (!Schema::hasTable($table) || !Schema::hasColumn($table, 'dossier_id')) {
-            return;
-        }
-
-        $documentClass::query()
-            ->where('dossier_id', $dossier->id)
-            ->delete();
-    }
-
     private function etablissementPayload(Dossier $dossier): array
     {
-        $etablissementId = $this->value($dossier, [
-            'etablissement_id',
-            'institution_id',
-        ]);
+        $etablissementId = $this->value($dossier, ['etablissement_id']);
 
         $etablissement = null;
 
@@ -358,106 +362,202 @@ class DossierController extends Controller
         if ($etablissement) {
             return [
                 'id' => $etablissement->id,
-                'nom' => $this->value($etablissement, [
-                    'nom',
-                    'name',
-                    'etablissement',
-                    'etablissement_2',
-                    'intitule',
-                ], '—'),
-                'type' => $this->value($etablissement, [
-                    'type',
-                    'type_etablissement',
-                    'categorie',
-                ], '—'),
-                'ville' => $this->value($etablissement, [
-                    'ville',
-                    'city',
-                ], '—'),
-                'universite' => $this->value($etablissement, [
-                    'universite',
-                    'universite_nom',
-                    'université',
-                    'university',
-                ], '—'),
-                'email' => $this->value($etablissement, [
-                    'email',
-                    'mail',
-                ], '—'),
+                'nom' => $this->value(
+                    $etablissement,
+                    ['nom', 'etablissement_2', 'etablissement', 'name', 'intitule'],
+                    '—'
+                ),
+                'type' => $this->value($etablissement, ['type', 'categorie'], '—'),
+                'ville' => $this->value($etablissement, ['ville', 'city'], '—'),
+                'universite' => $this->value($etablissement, ['universite', 'universite_nom', 'university'], '—'),
+                'email' => $this->value($etablissement, ['email'], '—'),
             ];
         }
 
         return [
             'id' => $etablissementId,
-            'nom' => $this->value($dossier, [
-                'etablissement_nom',
-                'etablissement',
-                'nom_etablissement',
-            ], '—'),
-            'type' => $this->value($dossier, [
-                'type_etablissement',
-                'type',
-            ], '—'),
-            'ville' => $this->value($dossier, [
-                'ville',
-                'city',
-            ], '—'),
-            'universite' => $this->value($dossier, [
-                'universite',
-                'universite_nom',
-                'université',
-            ], '—'),
-            'email' => $this->value($dossier, [
-                'email',
-                'email_etablissement',
-            ], '—'),
+            'nom' => $this->value($dossier, ['etablissement_nom', 'etablissement', 'nom_etablissement'], '—'),
+            'type' => '—',
+            'ville' => $this->value($dossier, ['ville'], '—'),
+            'universite' => $this->value($dossier, ['universite'], '—'),
+            'email' => $this->value($dossier, ['email'], '—'),
         ];
     }
 
     private function creatorName(Dossier $dossier): string
     {
-        $directName = $this->value($dossier, [
-            'created_by_name',
-            'creator_name',
-        ]);
+        $createdBy = $this->value($dossier, ['created_by', 'user_id']);
 
-        if ($directName) {
-            return $directName;
+        if (!$createdBy) {
+            return '—';
         }
 
-        $createdBy = $this->value($dossier, ['created_by']);
+        $user = User::query()->find($createdBy);
 
-        if ($createdBy) {
-            return User::query()
-                ->where('id', $createdBy)
-                ->value('name') ?? '—';
+        return $user?->name ?? '—';
+    }
+
+    private function deleteDossierDocuments(Dossier $dossier): void
+    {
+        $table = $this->documentsTable();
+
+        if (!$table) {
+            return;
         }
 
-        return '—';
+        $documents = DB::table($table)
+            ->where('dossier_id', $dossier->id)
+            ->get();
+
+        foreach ($documents as $document) {
+            $path = $this->documentPath($document);
+
+            if ($path && Storage::disk('public')->exists($path)) {
+                Storage::disk('public')->delete($path);
+            }
+        }
+
+        DB::table($table)
+            ->where('dossier_id', $dossier->id)
+            ->delete();
     }
 
     private function documentsTotalCount(): int
     {
-        $documentClass = '\\App\\Models\\DossierDocument';
+        $table = $this->documentsTable();
 
-        if (!class_exists($documentClass)) {
+        if (!$table) {
             return 0;
         }
 
-        $documentModel = new $documentClass();
-        $table = $documentModel->getTable();
-
-        if (!Schema::hasTable($table)) {
-            return 0;
-        }
-
-        return $documentClass::query()->count();
+        return DB::table($table)->count();
     }
 
-    private function value($model, array $keys, $default = null)
+    private function documentsTable(): ?string
     {
-        foreach ($keys as $key) {
-            $value = $model?->getAttribute($key);
+        foreach (['dossier_documents', 'documents'] as $table) {
+            if (Schema::hasTable($table)) {
+                return $table;
+            }
+        }
+
+        return null;
+    }
+
+    private function documentPath(object $document): ?string
+    {
+        foreach (['path', 'file_path', 'fichier', 'document_path'] as $column) {
+            if (property_exists($document, $column) && !empty($document->{$column})) {
+                return $document->{$column};
+            }
+        }
+
+        return null;
+    }
+
+    private function fileUrl(?string $path): ?string
+    {
+        if (!$path) {
+            return null;
+        }
+
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
+        }
+
+        if (str_starts_with($path, '/storage/')) {
+            return $path;
+        }
+
+        return Storage::disk('public')->url($path);
+    }
+
+    private function orderLatest(Builder $query, string $table): void
+    {
+        if ($this->hasColumn($table, 'updated_at')) {
+            $query->latest('updated_at');
+            return;
+        }
+
+        if ($this->hasColumn($table, 'created_at')) {
+            $query->latest('created_at');
+            return;
+        }
+
+        if ($this->hasColumn($table, 'id')) {
+            $query->latest('id');
+        }
+    }
+
+    private function orderLatestDb($query, string $table): void
+    {
+        if ($this->hasColumn($table, 'updated_at')) {
+            $query->orderByDesc('updated_at');
+            return;
+        }
+
+        if ($this->hasColumn($table, 'created_at')) {
+            $query->orderByDesc('created_at');
+            return;
+        }
+
+        if ($this->hasColumn($table, 'id')) {
+            $query->orderByDesc('id');
+        }
+    }
+
+    private function orderExperts(Builder $query): void
+    {
+        $table = (new Expert())->getTable();
+
+        if ($this->hasColumn($table, 'nom')) {
+            $query->orderBy('nom');
+        }
+
+        if ($this->hasColumn($table, 'prenom')) {
+            $query->orderBy('prenom');
+        }
+
+        if (!$this->hasColumn($table, 'nom') && $this->hasColumn($table, 'name')) {
+            $query->orderBy('name');
+        }
+    }
+
+    private function hasDossierColumn(string $column): bool
+    {
+        return $this->hasColumn((new Dossier())->getTable(), $column);
+    }
+
+    private function hasColumn(string $table, string $column): bool
+    {
+        return in_array($column, $this->columns($table), true);
+    }
+
+    private function columns(string $table): array
+    {
+        static $columns = [];
+
+        if (!isset($columns[$table])) {
+            if (!Schema::hasTable($table)) {
+                $columns[$table] = [];
+            } else {
+                $columns[$table] = Schema::getColumnListing($table);
+            }
+        }
+
+        return $columns[$table];
+    }
+
+    private function value($model, array $columns, mixed $default = null): mixed
+    {
+        $table = method_exists($model, 'getTable') ? $model->getTable() : null;
+
+        foreach ($columns as $column) {
+            if ($table && !$this->hasColumn($table, $column)) {
+                continue;
+            }
+
+            $value = $model->getAttribute($column);
 
             if ($value !== null && $value !== '') {
                 return $value;
@@ -467,49 +567,21 @@ class DossierController extends Controller
         return $default;
     }
 
-    private function dossierColumns(): array
+    private function objectValue(object $object, array $columns, mixed $default = null): mixed
     {
-        return Schema::hasTable((new Dossier())->getTable())
-            ? Schema::getColumnListing((new Dossier())->getTable())
-            : [];
-    }
-
-    private function hasDossierColumn(string $column): bool
-    {
-        return Schema::hasColumn((new Dossier())->getTable(), $column);
-    }
-
-    private function orderLatest($query, string $table): void
-    {
-        if (Schema::hasColumn($table, 'created_at')) {
-            $query->orderByDesc('created_at');
-            return;
-        }
-
-        if (Schema::hasColumn($table, 'id')) {
-            $query->orderByDesc('id');
-        }
-    }
-
-    private function orderExperts($query): void
-    {
-        $table = (new Expert())->getTable();
-
-        foreach (['nom', 'name', 'email', 'id'] as $column) {
-            if (Schema::hasColumn($table, $column)) {
-                $column === 'id'
-                    ? $query->orderByDesc($column)
-                    : $query->orderBy($column);
-
-                return;
+        foreach ($columns as $column) {
+            if (property_exists($object, $column) && $object->{$column} !== null && $object->{$column} !== '') {
+                return $object->{$column};
             }
         }
+
+        return $default;
     }
 
-    private function formatDateDisplay($date): ?string
+    private function formatDateDisplay($date): string
     {
         if (!$date) {
-            return null;
+            return '—';
         }
 
         try {
@@ -519,16 +591,16 @@ class DossierController extends Controller
         }
     }
 
-    private function formatDateInput($date): ?string
+    private function formatDateInput($date): string
     {
         if (!$date) {
-            return null;
+            return '';
         }
 
         try {
             return Carbon::parse($date)->format('Y-m-d\TH:i');
         } catch (\Throwable $e) {
-            return null;
+            return '';
         }
     }
 }

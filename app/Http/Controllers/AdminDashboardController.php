@@ -12,11 +12,17 @@ class AdminDashboardController extends Controller
 {
     public function index()
     {
-        return Inertia::render('Dashboard', [
+        $vaguesCount = CampagneEvaluation::count();
+
+        return Inertia::render('DEE/AdminDashboard', [
             'stats' => [
                 'etablissements' => Etablissement::count(),
                 'experts' => Expert::count(),
-                'vagues' => CampagneEvaluation::count(),
+
+                // J'ai mis les deux noms pour éviter les bugs côté React
+                'vagues' => $vaguesCount,
+                'campagnes' => $vaguesCount,
+
                 'dossiers' => Dossier::count(),
                 'visites' => Dossier::whereNotNull('date_visite')->count(),
             ],

@@ -19,11 +19,14 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-export default function Welcome() {
+export default function AdminDashboard({ stats: dashboardStats = {} }) {
     const { props } = usePage();
+
     const auth = props.auth || {};
     const locale = props.locale || 'fr';
     const isArabic = locale === 'ar';
+
+    const counts = dashboardStats || props.stats || {};
 
     const [profileMenuOpen, setProfileMenuOpen] = useState(false);
     const menuRef = useRef(null);
@@ -36,6 +39,7 @@ export default function Welcome() {
         };
 
         document.addEventListener('mousedown', handleClickOutside);
+
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
@@ -50,10 +54,10 @@ export default function Welcome() {
             french: 'Français',
             profile: 'Voir le profil',
             logout: 'Se déconnecter',
-            heroBadge: "Plateforme ANEAQ - Évaluation des établissements",
-            heroTitle: "Pilotez l’évaluation des établissements dans un espace moderne et centralisé",
+            heroBadge: 'Plateforme ANEAQ - Évaluation des établissements',
+            heroTitle: 'Pilotez l’évaluation des établissements dans un espace moderne et centralisé',
             heroDesc:
-                "Gérez les vagues d’évaluation, les établissements, les experts, les dossiers et les visites dans une interface claire, professionnelle et adaptée au workflow ANEAQ.",
+                'Gérez les vagues d’évaluation, les établissements, les experts, les dossiers et les visites dans une interface claire, professionnelle et adaptée au workflow ANEAQ.',
             createWave: "Créer une vague d'évaluation",
             discoverModules: 'Découvrir les modules',
             statsTitle: 'Chiffres clés',
@@ -66,25 +70,26 @@ export default function Welcome() {
             modulesTitle: 'Modules principaux',
             modulesSubtitle: 'Les briques essentielles de votre plateforme d’évaluation.',
             seeMore: 'Voir plus',
+            openModule: 'Ouvrir le module',
             workflowTitle: 'Comment ça fonctionne',
             workflowSubtitle: 'Un processus simple en plusieurs étapes pour piloter les évaluations.',
             step1Title: 'Créer une vague',
-            step1Desc: "Créer la campagne d’évaluation et définir les informations générales.",
+            step1Desc: 'Créer la campagne d’évaluation et définir les informations générales.',
             step2Title: 'Sélectionner les établissements',
-            step2Desc: "Choisir les établissements concernés et générer leurs accès.",
+            step2Desc: 'Choisir les établissements concernés et générer leurs accès.',
             step3Title: 'Affecter les experts',
-            step3Desc: "Rechercher, sélectionner et affecter les experts aux dossiers.",
+            step3Desc: 'Rechercher, sélectionner et affecter les experts aux dossiers.',
             step4Title: 'Suivre les dossiers',
-            step4Desc: "Gérer les statuts, les documents, les rapports et les dates de visite.",
+            step4Desc: 'Gérer les statuts, les documents, les rapports et les dates de visite.',
             whyTitle: 'Pourquoi cette plateforme ?',
             whySubtitle: 'Une expérience plus claire, plus rapide et mieux structurée.',
             why1: 'Centralisation des données et des opérations',
             why2: 'Suivi clair des vagues, dossiers et visites',
             why3: 'Navigation rapide entre les modules',
             why4: 'Interface professionnelle cohérente',
-            ctaTitle: "Prêt à commencer une nouvelle campagne d’évaluation ?",
+            ctaTitle: 'Prêt à commencer une nouvelle campagne d’évaluation ?',
             ctaDesc:
-                "Accède directement à la création d’une vague ou ouvre le dashboard administrateur pour continuer ton travail.",
+                'Accède directement à la création d’une vague ou ouvre le dashboard administrateur pour continuer ton travail.',
             quickLinks: 'Liens rapides',
             adminDashboard: 'Dashboard administrateur',
             contactUs: 'Contactez-nous',
@@ -120,6 +125,7 @@ export default function Welcome() {
             modulesTitle: 'الوحدات الرئيسية',
             modulesSubtitle: 'المرتكزات الأساسية لمنصة التقييم.',
             seeMore: 'عرض المزيد',
+            openModule: 'فتح الوحدة',
             workflowTitle: 'كيف تعمل المنصة',
             workflowSubtitle: 'مسار بسيط على مراحل لتدبير عمليات التقييم.',
             step1Title: 'إنشاء حملة',
@@ -162,31 +168,31 @@ export default function Welcome() {
     const stats = [
         {
             label: t.etablissements,
-            value: '163',
+            value: counts.etablissements ?? 0,
             icon: Building2,
             route: '/etablissements',
         },
         {
             label: t.experts,
-            value: '242',
+            value: counts.experts ?? 0,
             icon: Users,
             route: '/experts',
         },
         {
             label: t.vagues,
-            value: '1',
+            value: counts.vagues ?? counts.campagnes ?? 0,
             icon: Layers3,
             route: '/campagnes',
         },
         {
             label: t.dossiers,
-            value: '1',
+            value: counts.dossiers ?? 0,
             icon: ClipboardCheck,
             route: '/dossiers',
         },
         {
             label: t.visites,
-            value: '1',
+            value: counts.visites ?? 0,
             icon: CalendarDays,
             route: '/workflow/visites',
         },
@@ -195,37 +201,37 @@ export default function Welcome() {
     const modules = [
         {
             title: t.etablissements,
-            desc: "Gestion des établissements, consultation, recherche et rattachement aux vagues.",
+            desc: 'Gestion des établissements, consultation, recherche et rattachement aux vagues.',
             icon: Building2,
             route: '/etablissements',
         },
         {
             title: t.experts,
-            desc: "Gestion des experts, recherche, filtrage, affectation et suivi.",
+            desc: 'Gestion des experts, recherche, filtrage, affectation et suivi.',
             icon: Users,
             route: '/experts',
         },
         {
             title: t.vagues,
-            desc: "Création, pilotage et suivi des vagues d’évaluation.",
+            desc: 'Création, pilotage et suivi des vagues d’évaluation.',
             icon: Layers3,
             route: '/campagnes',
         },
         {
             title: t.dossiers,
-            desc: "Suivi des dossiers, statuts, documents et expertises.",
+            desc: 'Suivi des dossiers, statuts, documents et expertises.',
             icon: ClipboardCheck,
             route: '/dossiers',
         },
         {
             title: t.visites,
-            desc: "Planification et suivi des dates de visite programmées.",
+            desc: 'Planification et suivi des dates de visite programmées.',
             icon: CalendarDays,
             route: '/workflow/visites',
         },
         {
             title: t.dashboard,
-            desc: "Tableau de bord global pour piloter l’ensemble de la plateforme.",
+            desc: 'Tableau de bord global pour piloter l’ensemble de la plateforme.',
             icon: ShieldCheck,
             route: '/dashboard',
         },
@@ -240,13 +246,16 @@ export default function Welcome() {
 
     const whyItems = [t.why1, t.why2, t.why3, t.why4];
 
+    const goTo = (url) => {
+        router.visit(url);
+    };
+
     return (
         <>
-            <Head title="Accueil - ANEAQ" />
+            <Head title="Dashboard - ANEAQ" />
 
             <div dir={isArabic ? 'rtl' : 'ltr'} className="min-h-screen bg-[#f6f8fc] text-slate-800">
-                {/* HEADER */}
-                <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur-md shadow-sm">
+                <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur-md">
                     <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
                         <div className="flex items-center gap-6">
                             <Link href="/" className="flex items-center gap-4">
@@ -254,25 +263,35 @@ export default function Welcome() {
                                     src="/images/logo-ministere.png"
                                     alt="Ministère"
                                     className="h-11 rounded-xl bg-white p-1.5 shadow-sm"
-                                    onError={(e) => (e.currentTarget.style.display = 'none')}
+                                    onError={(e) => {
+                                        e.currentTarget.style.display = 'none';
+                                    }}
                                 />
-                                <div className="h-9 w-px bg-slate-200"></div>
+
+                                <div className="h-9 w-px bg-slate-200" />
+
                                 <img
                                     src="/images/logo-aneaq.png"
                                     alt="ANEAQ"
                                     className="h-11 rounded-xl bg-white p-1.5 shadow-sm"
-                                    onError={(e) => (e.currentTarget.style.display = 'none')}
+                                    onError={(e) => {
+                                        e.currentTarget.style.display = 'none';
+                                    }}
                                 />
                             </Link>
 
-                            <div className="hidden xl:flex items-center gap-8 text-sm font-semibold text-slate-700">
+                            <div className="hidden items-center gap-8 text-sm font-semibold text-slate-700 xl:flex">
                                 <Link href="/" className="transition hover:text-blue-600">
                                     {t.about}
                                 </Link>
 
-                                <div className="relative group">
-                                    <button type="button" className="flex items-center gap-1 transition hover:text-blue-600">
-                                        {t.universities} <ChevronDown size={16} />
+                                <div className="group relative">
+                                    <button
+                                        type="button"
+                                        className="flex items-center gap-1 transition hover:text-blue-600"
+                                    >
+                                        {t.universities}
+                                        <ChevronDown size={16} />
                                     </button>
 
                                     <div className="absolute left-0 top-full hidden w-[620px] rounded-2xl border border-slate-100 bg-white p-5 shadow-2xl group-hover:block">
@@ -302,7 +321,7 @@ export default function Welcome() {
                             <button
                                 type="button"
                                 onClick={() => router.post(`/language/${isArabic ? 'fr' : 'ar'}`)}
-                                className="hidden md:flex items-center gap-2 rounded-full border border-slate-300 px-4 py-2 text-xs font-bold text-slate-700 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white"
+                                className="hidden items-center gap-2 rounded-full border border-slate-300 px-4 py-2 text-xs font-bold text-slate-700 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white md:flex"
                             >
                                 <Globe size={16} />
                                 {isArabic ? t.french : t.arabic}
@@ -314,7 +333,7 @@ export default function Welcome() {
                                         <button
                                             type="button"
                                             onClick={() => setProfileMenuOpen((prev) => !prev)}
-                                            className="hidden lg:flex items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-600"
+                                            className="hidden items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-600 lg:flex"
                                         >
                                             {auth.user.name}
                                             <ChevronDown size={16} />
@@ -371,9 +390,9 @@ export default function Welcome() {
                     </div>
                 </header>
 
-                {/* HERO */}
                 <section className="relative overflow-hidden">
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(37,99,235,0.12),_transparent_35%),radial-gradient(circle_at_bottom_right,_rgba(14,165,233,0.12),_transparent_35%)]" />
+
                     <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:px-8 lg:py-24">
                         <div className="flex flex-col justify-center">
                             <span className="inline-flex w-fit items-center rounded-full bg-blue-100 px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] text-blue-700">
@@ -388,15 +407,15 @@ export default function Welcome() {
                                 {t.heroDesc}
                             </p>
 
-                           <div className="mt-8">
-    <button
-        type="button"
-        onClick={() => router.visit('/campagnes/create')}
-        className="inline-flex min-w-[340px] items-center justify-center rounded-2xl bg-[#223270] px-12 py-5 text-base font-black text-white shadow-xl shadow-blue-950/20 transition hover:-translate-y-0.5 hover:bg-[#1b285a] active:scale-95"
-    >
-        {t.createWave}
-    </button>
-</div>
+                            <div className="mt-8">
+                                <button
+                                    type="button"
+                                    onClick={() => goTo('/campagnes/create')}
+                                    className="inline-flex min-w-[340px] items-center justify-center rounded-2xl bg-[#223270] px-12 py-5 text-base font-black text-white shadow-xl shadow-blue-950/20 transition hover:-translate-y-0.5 hover:bg-[#1b285a] active:scale-95"
+                                >
+                                    {t.createWave}
+                                </button>
+                            </div>
                         </div>
 
                         <div className="flex items-center justify-center">
@@ -404,6 +423,7 @@ export default function Welcome() {
                                 <p className="text-sm font-bold uppercase tracking-[0.28em] text-blue-100">
                                     ANEAQ
                                 </p>
+
                                 <h2 className="mt-4 text-3xl font-black">
                                     {t.discoverModules}
                                 </h2>
@@ -411,18 +431,27 @@ export default function Welcome() {
                                 <div className="mt-8 grid gap-4 sm:grid-cols-2">
                                     {stats.map((item) => {
                                         const Icon = item.icon;
+
                                         return (
                                             <button
                                                 key={item.label}
                                                 type="button"
-                                                onClick={() => router.visit(item.route)}
-                                                className="rounded-2xl bg-white/10 p-5 text-left backdrop-blur transition hover:bg-white/20"
+                                                onClick={() => goTo(item.route)}
+                                                className="group rounded-2xl bg-white/10 p-5 text-left backdrop-blur transition hover:-translate-y-1 hover:bg-white/20"
                                             >
                                                 <Icon size={24} />
+
                                                 <p className="mt-4 text-sm uppercase tracking-[0.2em] text-blue-100">
                                                     {item.label}
                                                 </p>
-                                                <p className="mt-2 text-3xl font-black">{item.value}</p>
+
+                                                <p className="mt-2 text-3xl font-black">
+                                                    {item.value}
+                                                </p>
+
+                                                <p className="mt-3 text-sm font-bold text-blue-50 opacity-0 transition group-hover:opacity-100">
+                                                    {t.openModule}
+                                                </p>
                                             </button>
                                         );
                                     })}
@@ -432,43 +461,59 @@ export default function Welcome() {
                     </div>
                 </section>
 
-                {/* STATS */}
                 <section className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
                     <div className="mb-8 text-center">
                         <p className="text-sm font-bold uppercase tracking-[0.24em] text-blue-600">
                             {t.statsTitle}
                         </p>
-                        <h2 className="mt-2 text-3xl font-black text-blue-950">{t.statsSubtitle}</h2>
+
+                        <h2 className="mt-2 text-3xl font-black text-blue-950">
+                            {t.statsSubtitle}
+                        </h2>
                     </div>
 
                     <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-5">
                         {stats.map((item) => {
                             const Icon = item.icon;
+
                             return (
-                                <div
+                                <button
                                     key={item.label}
-                                    className="rounded-[1.8rem] border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+                                    type="button"
+                                    onClick={() => goTo(item.route)}
+                                    className="group rounded-[1.8rem] border border-slate-200 bg-white p-6 text-left shadow-sm transition hover:-translate-y-1 hover:border-blue-200 hover:shadow-lg"
                                 >
-                                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+                                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 transition group-hover:bg-blue-600 group-hover:text-white">
                                         <Icon size={26} />
                                     </div>
+
                                     <p className="mt-5 text-sm font-bold uppercase tracking-[0.24em] text-slate-400">
                                         {item.label}
                                     </p>
-                                    <p className="mt-2 text-5xl font-black text-blue-950">{item.value}</p>
-                                </div>
+
+                                    <p className="mt-2 text-5xl font-black text-blue-950">
+                                        {item.value}
+                                    </p>
+
+                                    <p className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-blue-600 opacity-0 transition group-hover:opacity-100">
+                                        {t.openModule}
+                                        <ArrowRight size={16} />
+                                    </p>
+                                </button>
                             );
                         })}
                     </div>
                 </section>
 
-                {/* MODULES */}
                 <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
                     <div className="mb-10 text-center">
                         <p className="text-sm font-bold uppercase tracking-[0.24em] text-blue-600">
                             {t.modulesTitle}
                         </p>
-                        <h2 className="mt-2 text-3xl font-black text-blue-950">{t.modulesSubtitle}</h2>
+
+                        <h2 className="mt-2 text-3xl font-black text-blue-950">
+                            {t.modulesSubtitle}
+                        </h2>
                     </div>
 
                     <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
@@ -476,11 +521,13 @@ export default function Welcome() {
                             const Icon = module.icon;
 
                             return (
-                                <div
+                                <button
                                     key={module.title}
-                                    className="group rounded-[2rem] border border-slate-200 bg-white p-7 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+                                    type="button"
+                                    onClick={() => goTo(module.route)}
+                                    className="group rounded-[2rem] border border-slate-200 bg-white p-7 text-left shadow-sm transition hover:-translate-y-1 hover:border-blue-200 hover:shadow-lg"
                                 >
-                                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+                                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 transition group-hover:bg-blue-600 group-hover:text-white">
                                         <Icon size={26} />
                                     </div>
 
@@ -492,28 +539,26 @@ export default function Welcome() {
                                         {module.desc}
                                     </p>
 
-                                    <button
-                                        type="button"
-                                        onClick={() => router.visit(module.route)}
-                                        className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-blue-700 transition group-hover:gap-3"
-                                    >
+                                    <span className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-blue-700 transition group-hover:gap-3">
                                         {t.seeMore}
                                         <ArrowRight size={16} />
-                                    </button>
-                                </div>
+                                    </span>
+                                </button>
                             );
                         })}
                     </div>
                 </section>
 
-                {/* WORKFLOW */}
                 <section className="border-y border-slate-200 bg-white">
                     <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
                         <div className="mb-10 text-center">
                             <p className="text-sm font-bold uppercase tracking-[0.24em] text-blue-600">
                                 {t.workflowTitle}
                             </p>
-                            <h2 className="mt-2 text-3xl font-black text-blue-950">{t.workflowSubtitle}</h2>
+
+                            <h2 className="mt-2 text-3xl font-black text-blue-950">
+                                {t.workflowSubtitle}
+                            </h2>
                         </div>
 
                         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
@@ -526,27 +571,44 @@ export default function Welcome() {
                                         {index + 1}
                                     </div>
 
-                                    <h3 className="mt-6 text-xl font-black text-blue-950">{step.title}</h3>
-                                    <p className="mt-3 text-sm leading-7 text-slate-600">{step.desc}</p>
+                                    <h3 className="mt-6 text-xl font-black text-blue-950">
+                                        {step.title}
+                                    </h3>
+
+                                    <p className="mt-3 text-sm leading-7 text-slate-600">
+                                        {step.desc}
+                                    </p>
                                 </div>
                             ))}
                         </div>
                     </div>
                 </section>
 
-                {/* WHY */}
                 <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
                     <div className="grid gap-10 lg:grid-cols-2">
                         <div className="rounded-[2rem] bg-gradient-to-br from-[#13255c] to-[#223983] p-10 text-white shadow-xl">
                             <p className="text-sm font-bold uppercase tracking-[0.24em] text-blue-100">
                                 {t.whyTitle}
                             </p>
-                            <h2 className="mt-3 text-3xl font-black">{t.whySubtitle}</h2>
+
+                            <h2 className="mt-3 text-3xl font-black">
+                                {t.whySubtitle}
+                            </h2>
+
                             <div className="mt-8 space-y-4">
                                 {whyItems.map((item) => (
-                                    <div key={item} className="flex items-start gap-3 rounded-2xl bg-white/10 p-4">
-                                        <CheckCircle2 className="mt-0.5 shrink-0 text-blue-200" size={20} />
-                                        <span className="text-sm leading-7 text-blue-50">{item}</span>
+                                    <div
+                                        key={item}
+                                        className="flex items-start gap-3 rounded-2xl bg-white/10 p-4"
+                                    >
+                                        <CheckCircle2
+                                            className="mt-0.5 shrink-0 text-blue-200"
+                                            size={20}
+                                        />
+
+                                        <span className="text-sm leading-7 text-blue-50">
+                                            {item}
+                                        </span>
                                     </div>
                                 ))}
                             </div>
@@ -556,14 +618,20 @@ export default function Welcome() {
                             <p className="text-sm font-bold uppercase tracking-[0.24em] text-blue-600">
                                 ANEAQ
                             </p>
-                            <h2 className="mt-3 text-3xl font-black text-blue-950">{t.ctaTitle}</h2>
-                            <p className="mt-5 text-base leading-8 text-slate-600">{t.ctaDesc}</p>
 
-                           <div className="mt-8">
+                            <h2 className="mt-3 text-3xl font-black text-blue-950">
+                                {t.ctaTitle}
+                            </h2>
+
+                            <p className="mt-5 text-base leading-8 text-slate-600">
+                                {t.ctaDesc}
+                            </p>
+
+                            <div className="mt-10 flex justify-center">
     <button
         type="button"
-        onClick={() => router.visit('/campagnes/create')}
-        className="inline-flex min-w-[320px] items-center justify-center rounded-2xl bg-[#223270] px-10 py-4 text-sm font-black text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-[#1b285a] active:scale-95"
+        onClick={() => goTo('/campagnes/create')}
+        className="inline-flex h-16 min-w-[360px] items-center justify-center rounded-2xl bg-[#223270] px-12 text-base font-black text-white shadow-xl shadow-blue-950/20 transition hover:-translate-y-0.5 hover:bg-[#1b285a] active:scale-95"
     >
         {t.createWave}
     </button>
@@ -572,7 +640,6 @@ export default function Welcome() {
                     </div>
                 </section>
 
-                {/* FOOTER */}
                 <footer className="bg-blue-950 pb-8 pt-20 text-white md:pt-24">
                     <div className="mx-auto max-w-7xl px-4">
                         <div className="mb-16 grid gap-12 border-b border-white/10 pb-16 sm:grid-cols-2 lg:grid-cols-4">
@@ -582,7 +649,9 @@ export default function Welcome() {
                                         src="/images/logo-aneaq.png"
                                         alt="ANEAQ"
                                         className="h-10 rounded bg-white p-1"
-                                        onError={(e) => (e.currentTarget.style.display = 'none')}
+                                        onError={(e) => {
+                                            e.currentTarget.style.display = 'none';
+                                        }}
                                     />
                                     ANEAQ
                                 </span>
@@ -593,57 +662,65 @@ export default function Welcome() {
                             </div>
 
                             <div>
-                                <h4 className="mb-6 text-lg font-bold text-white">{t.quickLinks}</h4>
+                                <h4 className="mb-6 text-lg font-bold text-white">
+                                    {t.quickLinks}
+                                </h4>
+
                                 <ul className="space-y-4 text-sm font-medium text-blue-200/70">
                                     <li>
                                         <button
                                             type="button"
-                                            onClick={() => router.visit('/dashboard')}
+                                            onClick={() => goTo('/dashboard')}
                                             className="transition hover:text-white"
                                         >
                                             {t.adminDashboard}
                                         </button>
                                     </li>
+
                                     <li>
                                         <button
                                             type="button"
-                                            onClick={() => router.visit('/etablissements')}
+                                            onClick={() => goTo('/etablissements')}
                                             className="transition hover:text-white"
                                         >
                                             {t.etablissements}
                                         </button>
                                     </li>
+
                                     <li>
                                         <button
                                             type="button"
-                                            onClick={() => router.visit('/experts')}
+                                            onClick={() => goTo('/experts')}
                                             className="transition hover:text-white"
                                         >
                                             {t.experts}
                                         </button>
                                     </li>
+
                                     <li>
                                         <button
                                             type="button"
-                                            onClick={() => router.visit('/campagnes')}
+                                            onClick={() => goTo('/campagnes')}
                                             className="transition hover:text-white"
                                         >
                                             {t.vagues}
                                         </button>
                                     </li>
+
                                     <li>
                                         <button
                                             type="button"
-                                            onClick={() => router.visit('/dossiers')}
+                                            onClick={() => goTo('/dossiers')}
                                             className="transition hover:text-white"
                                         >
                                             {t.dossiers}
                                         </button>
                                     </li>
+
                                     <li>
                                         <button
                                             type="button"
-                                            onClick={() => router.visit('/workflow/visites')}
+                                            onClick={() => goTo('/workflow/visites')}
                                             className="transition hover:text-white"
                                         >
                                             {t.visites}
@@ -653,11 +730,15 @@ export default function Welcome() {
                             </div>
 
                             <div className="lg:col-span-2">
-                                <h4 className="mb-6 text-lg font-bold text-white">{t.contactUs}</h4>
+                                <h4 className="mb-6 text-lg font-bold text-white">
+                                    {t.contactUs}
+                                </h4>
+
                                 <div className="grid gap-8 sm:grid-cols-2">
                                     <div className="space-y-5">
                                         <div className="flex items-start gap-4 text-sm text-blue-200/70">
                                             <MapPin className="mt-0.5 shrink-0 text-blue-400" size={20} />
+
                                             <span className="leading-relaxed">
                                                 05 Street Abou Inan Hassan,
                                                 <br />
@@ -667,7 +748,11 @@ export default function Welcome() {
 
                                         <div className="flex items-center gap-4 text-sm text-blue-200/70">
                                             <Mail className="shrink-0 text-blue-400" size={20} />
-                                            <a href="mailto:contact@aneaq.ma" className="transition hover:text-white">
+
+                                            <a
+                                                href="mailto:contact@aneaq.ma"
+                                                className="transition hover:text-white"
+                                            >
                                                 contact@aneaq.ma
                                             </a>
                                         </div>

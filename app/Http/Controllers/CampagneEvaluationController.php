@@ -46,7 +46,7 @@ class CampagneEvaluationController extends Controller
             })
             ->values();
 
-        return Inertia::render('Campagnes/Index', [
+return Inertia::render('DEE/Campagnes/Index', [
             'campagnes' => $campagnes,
             'filters' => [
                 'statut' => $statut,
@@ -56,8 +56,7 @@ class CampagneEvaluationController extends Controller
 
     public function create()
     {
-        return Inertia::render('Campagnes/Create');
-    }
+return Inertia::render('DEE/Campagnes/Create');    }
 
     public function store(Request $request)
     {
@@ -187,7 +186,7 @@ class CampagneEvaluationController extends Controller
             })->count(),
         ];
 
-        return Inertia::render('Campagnes/Show', [
+return Inertia::render('DEE/Campagnes/Show', [
             'campagne' => [
                 'id' => $campagneEvaluation->id,
                 'reference' => $campagneEvaluation->reference,
