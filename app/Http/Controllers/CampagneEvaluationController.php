@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\CampagneEtablissement;
 use App\Models\CampagneEvaluation;
-use App\Models\Document;
+use App\Models\CampagneEtablissement;
 use App\Models\Dossier;
-use Illuminate\Support\Facades\DB;
+use App\Models\Etablissement;
+use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 
 class CampagneEvaluationController extends Controller
@@ -17,8 +19,13 @@ class CampagneEvaluationController extends Controller
     {
         $statut = $request->string('statut')->toString();
 
-        $campagnes = CampagneEvaluation::withCount(['etablissements', 'dossiers'])
-            ->when(in_array($statut, ['brouillon', 'active', 'cloturee'], true), fn ($query) => $query->where('statut', $statut))
+        $campagnes = CampagneEvaluation::query()
+            ->with(['creator:id,name'])
+            ->withCount(['campagneEtablissements', 'dossiers'])
+            ->when(
+                in_array($statut, ['brouillon', 'active', 'cloturee'], true),
+                fn ($query) => $query->where('statut', $statut)
+            )
             ->latest()
             ->get()
             ->map(function (CampagneEvaluation $campagne) {
@@ -29,11 +36,15 @@ class CampagneEvaluationController extends Controller
                     'vocation' => $campagne->vocation,
                     'observation' => $campagne->observation,
                     'statut' => $campagne->statut,
-                    'etablissements_count' => $campagne->etablissements_count,
+                    'created_by' => $campagne->created_by,
+                    'created_by_name' => $campagne->created_by_name ?: $campagne->creator?->name,
+                    'created_at' => optional($campagne->created_at)?->format('d/m/Y H:i'),
+                    'updated_at' => optional($campagne->updated_at)?->format('d/m/Y H:i'),
+                    'etablissements_count' => $campagne->campagne_etablissements_count,
                     'dossiers_count' => $campagne->dossiers_count,
-                    'created_at' => optional($campagne->created_at)->format('d/m/Y H:i'),
                 ];
-            });
+            })
+            ->values();
 
         return Inertia::render('Campagnes/Index', [
             'campagnes' => $campagnes,
@@ -56,28 +67,125 @@ class CampagneEvaluationController extends Controller
             'observation' => ['nullable', 'string'],
         ]);
 
-        $nextSequence = str_pad((string) ((CampagneEvaluation::max('id') ?? 0) + 1), 3, '0', STR_PAD_LEFT);
+        $nextId = ((int) CampagneEvaluation::max('id')) + 1;
+
+        $reference = 'VAG-' . $validated['annee'] . '-' . str_pad(
+            (string) $nextId,
+            3,
+            '0',
+            STR_PAD_LEFT
+        );
 
         $campagne = CampagneEvaluation::create([
-            'reference' => sprintf('VAG-%s-%s', $validated['annee'], $nextSequence),
+            'reference' => $reference,
             'annee' => $validated['annee'],
             'vocation' => $validated['vocation'],
             'observation' => $validated['observation'] ?? null,
             'statut' => 'brouillon',
-            'created_by' => $request->user()?->id,
+            'created_by' => Auth::id(),
+            'created_by_name' => Auth::user()?->name,
         ]);
 
-        return redirect()->route('campagnes.show', $campagne)->with('success', 'La vague d’évaluation a été créée.');
+        return redirect()
+            ->route('campagnes.show', $campagne)
+            ->with('success', 'Vague créée avec succès.');
     }
 
     public function show(CampagneEvaluation $campagneEvaluation)
     {
-        $campagneEvaluation->load(['creator']);
+        $creatorName = '—';
 
-        $etablissements = CampagneEtablissement::with(['etablissement', 'dossier'])
+        if ($campagneEvaluation->created_by) {
+            $creatorName = User::query()
+                ->where('id', $campagneEvaluation->created_by)
+                ->value('name') ?? '—';
+        }
+
+        $campagneEtablissements = CampagneEtablissement::query()
+            ->with(['etablissement', 'dossier'])
             ->where('campagne_evaluation_id', $campagneEvaluation->id)
             ->latest()
             ->get();
+
+        $etablissements = $campagneEtablissements
+            ->map(function ($item) {
+                $etablissement = $item->etablissement;
+                $dossier = $item->dossier;
+
+                return [
+                    'id' => $item->id,
+                    'etablissement_id' => $item->etablissement_id,
+                    'statut' => $this->modelValue($item, ['statut', 'status'], 'en_attente_confirmation_dee'),
+                    'email' => $this->modelValue($item, ['email'], $this->modelValue($etablissement, ['email', 'mail'], '')),
+                    'access_sent_at' => $this->formatDate($this->modelValue($item, ['access_sent_at'])),
+
+                    'etablissement' => [
+                        'id' => $etablissement?->id,
+                        'nom' => $this->etablissementName($etablissement),
+                        'type' => $this->modelValue($etablissement, ['type', 'type_etablissement', 'categorie'], '—'),
+                        'ville' => $this->modelValue($etablissement, ['ville', 'city'], '—'),
+                        'universite' => $this->modelValue($etablissement, ['universite', 'universite_nom', 'université', 'university'], '—'),
+                        'email' => $this->modelValue($etablissement, ['email', 'mail'], ''),
+                    ],
+
+                    'dossier' => $dossier ? [
+                        'id' => $dossier->id,
+                        'reference' => $this->modelValue($dossier, ['reference'], '—'),
+                        'nom' => $this->modelValue($dossier, ['nom'], '—'),
+                        'statut' => $this->modelValue($dossier, ['statut', 'status'], '—'),
+                        'date_visite' => $this->modelValue($dossier, ['date_visite'], null),
+                    ] : null,
+                ];
+            })
+            ->values();
+
+        $selectedIds = $campagneEtablissements
+            ->pluck('etablissement_id')
+            ->filter()
+            ->values()
+            ->toArray();
+
+        $availableQuery = Etablissement::query();
+
+        if (count($selectedIds) > 0) {
+            $availableQuery->whereNotIn('id', $selectedIds);
+        }
+
+        $this->orderEtablissements($availableQuery);
+
+        $availableEtablissements = $availableQuery
+            ->get()
+            ->map(function ($etablissement) {
+                return [
+                    'id' => $etablissement->id,
+                    'nom' => $this->etablissementName($etablissement),
+                    'type' => $this->modelValue($etablissement, ['type', 'type_etablissement', 'categorie'], '—'),
+                    'ville' => $this->modelValue($etablissement, ['ville', 'city'], '—'),
+                    'universite' => $this->modelValue($etablissement, ['universite', 'universite_nom', 'université', 'university'], '—'),
+                    'email' => $this->modelValue($etablissement, ['email', 'mail'], ''),
+                ];
+            })
+            ->values();
+
+        $stats = [
+            'etablissements' => $etablissements->count(),
+
+            'acces_envoyes' => $etablissements->filter(function ($item) {
+                $statut = strtolower($item['statut'] ?? '');
+
+                return str_contains($statut, 'acces_envoye')
+                    || str_contains($statut, 'accès envoyé')
+                    || !empty($item['access_sent_at']);
+            })->count(),
+
+            'dossiers' => $etablissements->filter(fn ($item) => $item['dossier'] !== null)->count(),
+
+            'formulaires' => $etablissements->filter(function ($item) {
+                $dossierStatus = strtolower($item['dossier']['statut'] ?? '');
+
+                return str_contains($dossierStatus, 'formulaire');
+            })->count(),
+        ];
 
         return Inertia::render('Campagnes/Show', [
             'campagne' => [
@@ -87,67 +195,194 @@ class CampagneEvaluationController extends Controller
                 'vocation' => $campagneEvaluation->vocation,
                 'observation' => $campagneEvaluation->observation,
                 'statut' => $campagneEvaluation->statut,
-                'creator' => $campagneEvaluation->creator?->name,
-                'created_at' => optional($campagneEvaluation->created_at)->format('d/m/Y H:i'),
-                'updated_at' => optional($campagneEvaluation->updated_at)->format('d/m/Y H:i'),
-                'stats' => [
-                    'etablissements' => $etablissements->count(),
-                    'lettres_preparees' => $etablissements->where('statut', 'lettre préparée')->count(),
-                    'acces_envoyes' => $etablissements->where('statut', 'accès envoyé')->count(),
-                    'formulaires_completes' => $etablissements->where('statut', 'formulaire initial complété')->count(),
-                ],
-                'etablissements' => $etablissements->map(function (CampagneEtablissement $item) {
-                    return [
-                        'id' => $item->id,
-                        'statut' => $item->statut,
-                        'observation' => $item->observation,
-                        'lettre_envoyee_at' => optional($item->lettre_envoyee_at)->format('d/m/Y H:i'),
-                        'email_envoye_at' => optional($item->email_envoye_at)->format('d/m/Y H:i'),
-                        'compte_genere_at' => optional($item->compte_genere_at)->format('d/m/Y H:i'),
-                        'dossier_id' => $item->dossier_id,
-                        'etablissement' => [
-                            'id' => $item->etablissement?->id,
-                            'nom' => $item->etablissement?->etablissement_2 ?: $item->etablissement?->etablissement,
-                            'ville' => $item->etablissement?->ville,
-                            'universite' => $item->etablissement?->universite,
-                            'email' => $item->etablissement?->email,
-                        ],
-                    ];
-                })->values(),
+                'created_by' => $creatorName,
+                'created_at' => optional($campagneEvaluation->created_at)?->format('d/m/Y H:i'),
+                'updated_at' => optional($campagneEvaluation->updated_at)?->format('d/m/Y H:i'),
             ],
+            'stats' => $stats,
+            'etablissements' => $etablissements,
+            'availableEtablissements' => $availableEtablissements,
         ]);
     }
 
     public function update(Request $request, CampagneEvaluation $campagneEvaluation)
     {
         $validated = $request->validate([
-            'statut' => ['required', 'in:brouillon,active,cloturee'],
-            'observation' => ['nullable', 'string'],
+            'annee' => ['sometimes', 'required', 'digits:4'],
+            'vocation' => ['sometimes', 'required', 'string', 'max:255'],
+            'observation' => ['sometimes', 'nullable', 'string'],
+            'statut' => ['sometimes', 'required', 'string', 'in:brouillon,active,cloturee'],
         ]);
 
-        $campagneEvaluation->update($validated);
+        if (array_key_exists('annee', $validated)) {
+            $campagneEvaluation->annee = $validated['annee'];
+        }
 
-        return back()->with('success', 'La vague a été mise à jour.');
+        if (array_key_exists('vocation', $validated)) {
+            $campagneEvaluation->vocation = $validated['vocation'];
+        }
+
+        if (array_key_exists('observation', $validated)) {
+            $campagneEvaluation->observation = $validated['observation'];
+        }
+
+        if (array_key_exists('statut', $validated)) {
+            $campagneEvaluation->statut = $validated['statut'];
+        }
+
+        $campagneEvaluation->save();
+
+        return back()->with('success', 'Vague mise à jour avec succès.');
     }
 
     public function destroy(CampagneEvaluation $campagneEvaluation)
     {
         DB::transaction(function () use ($campagneEvaluation) {
-            $dossierIds = Dossier::where('campagne_evaluation_id', $campagneEvaluation->id)->pluck('id');
+            $campagneEtablissements = CampagneEtablissement::query()
+                ->where('campagne_evaluation_id', $campagneEvaluation->id)
+                ->get();
 
-            if ($dossierIds->isNotEmpty()) {
-                $documents = Document::whereIn('dossier_id', $dossierIds)->get();
+            foreach ($campagneEtablissements as $campagneEtablissement) {
+                $dossier = $this->findDossierForCampagneEtablissement(
+                    $campagneEvaluation,
+                    $campagneEtablissement
+                );
 
-                foreach ($documents as $document) {
-                    Storage::disk('public')->delete($document->file_path);
+                if ($dossier) {
+                    $dossier->delete();
                 }
 
-                Dossier::whereIn('id', $dossierIds)->delete();
+                $campagneEtablissement->delete();
             }
 
             $campagneEvaluation->delete();
         });
 
-        return redirect()->route('campagnes.index')->with('success', 'La vague et ses éléments liés ont été supprimés.');
+        return redirect()
+            ->route('campagnes.index')
+            ->with('success', 'Vague supprimée avec succès.');
+    }
+
+    public function etablissements(CampagneEvaluation $campagneEvaluation)
+    {
+        return redirect()->route('campagnes.show', $campagneEvaluation);
+    }
+
+    private function findDossierForCampagneEtablissement(
+        CampagneEvaluation $campagne,
+        CampagneEtablissement $campagneEtablissement
+    ): ?Dossier {
+        $pivotTable = (new CampagneEtablissement())->getTable();
+        $dossierTable = (new Dossier())->getTable();
+
+        if (Schema::hasColumn($pivotTable, 'dossier_id')) {
+            $dossierId = $campagneEtablissement->getAttribute('dossier_id');
+
+            if ($dossierId) {
+                $dossier = Dossier::query()->find($dossierId);
+
+                if ($dossier) {
+                    return $dossier;
+                }
+            }
+        }
+
+        if (Schema::hasColumn($dossierTable, 'campagne_etablissement_id')) {
+            $dossier = Dossier::query()
+                ->where('campagne_etablissement_id', $campagneEtablissement->id)
+                ->first();
+
+            if ($dossier) {
+                return $dossier;
+            }
+        }
+
+        $query = Dossier::query();
+        $hasCampagneCondition = false;
+        $hasEtablissementCondition = false;
+
+        if (Schema::hasColumn($dossierTable, 'campagne_evaluation_id')) {
+            $query->where('campagne_evaluation_id', $campagne->id);
+            $hasCampagneCondition = true;
+        } elseif (Schema::hasColumn($dossierTable, 'campagne_id')) {
+            $query->where('campagne_id', $campagne->id);
+            $hasCampagneCondition = true;
+        } elseif (Schema::hasColumn($dossierTable, 'campagne')) {
+            $query->where('campagne', $campagne->reference);
+            $hasCampagneCondition = true;
+        }
+
+        if (Schema::hasColumn($dossierTable, 'etablissement_id')) {
+            $query->where('etablissement_id', $campagneEtablissement->etablissement_id);
+            $hasEtablissementCondition = true;
+        }
+
+        if (!$hasCampagneCondition || !$hasEtablissementCondition) {
+            return null;
+        }
+
+        return $query->first();
+    }
+
+    private function etablissementName($etablissement): string
+    {
+        return $this->modelValue($etablissement, [
+            'nom',
+            'name',
+            'etablissement',
+            'etablissement_2',
+            'intitule',
+        ], 'Établissement');
+    }
+
+    private function modelValue($model, array $columns, $default = null)
+    {
+        if (!$model) {
+            return $default;
+        }
+
+        foreach ($columns as $column) {
+            $value = $model->getAttribute($column);
+
+            if ($value !== null && $value !== '') {
+                return $value;
+            }
+        }
+
+        return $default;
+    }
+
+    private function orderEtablissements($query): void
+    {
+        $table = (new Etablissement())->getTable();
+
+        foreach (['nom', 'name', 'etablissement', 'etablissement_2', 'id'] as $column) {
+            if (Schema::hasColumn($table, $column)) {
+                if ($column === 'id') {
+                    $query->orderByDesc($column);
+                } else {
+                    $query->orderBy($column);
+                }
+
+                return;
+            }
+        }
+    }
+
+    private function formatDate($date): ?string
+    {
+        if (!$date) {
+            return null;
+        }
+
+        if ($date instanceof \Carbon\CarbonInterface) {
+            return $date->format('d/m/Y H:i');
+        }
+
+        try {
+            return \Carbon\Carbon::parse($date)->format('d/m/Y H:i');
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 }

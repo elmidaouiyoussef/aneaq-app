@@ -1,37 +1,30 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
-    AlertTriangle,
     ArrowRight,
     Building2,
     CalendarDays,
+    CheckCircle2,
     ChevronDown,
     ClipboardCheck,
-    Clock3,
-    ExternalLink,
-    FileText,
     Globe,
+    Layers3,
     LogOut,
     Mail,
     MapPin,
     Phone,
     Printer,
-    TrendingUp,
+    ShieldCheck,
     User,
     Users,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-export default function AdminDashboard({
-    auth,
-    stats = {},
-    experts = [],
-    etablissements = [],
-    alerts = [],
-    activities = [],
-}) {
+export default function Welcome() {
     const { props } = usePage();
+    const auth = props.auth || {};
     const locale = props.locale || 'fr';
     const isArabic = locale === 'ar';
+
     const [profileMenuOpen, setProfileMenuOpen] = useState(false);
     const menuRef = useRef(null);
 
@@ -41,6 +34,7 @@ export default function AdminDashboard({
                 setProfileMenuOpen(false);
             }
         };
+
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
@@ -50,244 +44,208 @@ export default function AdminDashboard({
             about: 'À propos',
             universities: 'Universités',
             guides: 'Guides',
+            dashboard: 'Dashboard',
             backHome: "Retour à l'accueil",
             arabic: 'العربية',
             french: 'Français',
-            realTimeIndicators: 'Indicateurs en Temps Réel',
-            realTimeOverview: "Vue d'ensemble des indicateurs en temps réel",
-            etablissements: 'Etablissements',
+            profile: 'Voir le profil',
+            logout: 'Se déconnecter',
+            heroBadge: "Plateforme ANEAQ - Évaluation des établissements",
+            heroTitle: "Pilotez l’évaluation des établissements dans un espace moderne et centralisé",
+            heroDesc:
+                "Gérez les vagues d’évaluation, les établissements, les experts, les dossiers et les visites dans une interface claire, professionnelle et adaptée au workflow ANEAQ.",
+            createWave: "Créer une vague d'évaluation",
+            discoverModules: 'Découvrir les modules',
+            statsTitle: 'Chiffres clés',
+            statsSubtitle: 'Une vue simple et rapide sur les principaux modules de gestion.',
+            etablissements: 'Établissements',
             experts: 'Experts',
+            vagues: 'Vagues',
             dossiers: 'Dossiers',
-            rapports: 'Rapports',
             visites: 'Visites',
-            recommandations: 'Recommandations',
-            structures: 'Structures engagees',
-            evaluateurs: 'Evaluateurs mobilises',
-            affectations: 'Affectations en cours',
-            livrables: 'Livrables consolides',
-            sessions: 'Sessions programmees',
-            actionsSuivi: 'Actions de suivi',
-            seeDetail: 'Voir le detail',
-            pilotage: 'Pilotage',
-            campaignTitle: 'Gestion des campagnes d evaluation',
-            campaignDesc:
-                'Accedez rapidement aux etapes cles du workflow DEE dans un espace plus clair, plus professionnel et plus moderne.',
-            utilisateur: 'Utilisateur',
-            activite: 'Activite',
-            dashboardWorkflow: 'Workflow du dashboard',
-            mainActions: 'Actions principales',
-            quickNavigation: 'Navigation rapide',
-            manageEtablissements: 'Gerer les etablissements',
-            manageExperts: 'Gerer les experts',
-            selectEtablissements: 'Selection des etablissements',
-            selectExperts: 'Selection des experts',
-            committee: 'Constitution du comite',
-            assignDossiers: 'Affectation des dossiers',
-            planVisits: 'Organisation des visites',
-            followRecommendations: 'Suivi des recommandations',
-            alerts: 'Alertes',
-            pointsAttention: "Points d attention",
-            activities: 'Activites',
-            latestOperations: 'Dernieres operations',
-            etabList: 'Liste des etablissements',
-            expertList: 'Liste des experts',
-            seeAll: 'Voir tous',
-            name: 'Nom',
-            city: 'Ville',
-            university: 'Universite',
-            email: 'Email',
-            noEtab: 'Aucun etablissement trouve.',
-            noExpert: 'Aucun expert trouve.',
-            noHistory: 'Aucun historique disponible.',
+            modulesTitle: 'Modules principaux',
+            modulesSubtitle: 'Les briques essentielles de votre plateforme d’évaluation.',
+            seeMore: 'Voir plus',
+            workflowTitle: 'Comment ça fonctionne',
+            workflowSubtitle: 'Un processus simple en plusieurs étapes pour piloter les évaluations.',
+            step1Title: 'Créer une vague',
+            step1Desc: "Créer la campagne d’évaluation et définir les informations générales.",
+            step2Title: 'Sélectionner les établissements',
+            step2Desc: "Choisir les établissements concernés et générer leurs accès.",
+            step3Title: 'Affecter les experts',
+            step3Desc: "Rechercher, sélectionner et affecter les experts aux dossiers.",
+            step4Title: 'Suivre les dossiers',
+            step4Desc: "Gérer les statuts, les documents, les rapports et les dates de visite.",
+            whyTitle: 'Pourquoi cette plateforme ?',
+            whySubtitle: 'Une expérience plus claire, plus rapide et mieux structurée.',
+            why1: 'Centralisation des données et des opérations',
+            why2: 'Suivi clair des vagues, dossiers et visites',
+            why3: 'Navigation rapide entre les modules',
+            why4: 'Interface professionnelle cohérente',
+            ctaTitle: "Prêt à commencer une nouvelle campagne d’évaluation ?",
+            ctaDesc:
+                "Accède directement à la création d’une vague ou ouvre le dashboard administrateur pour continuer ton travail.",
             quickLinks: 'Liens rapides',
             adminDashboard: 'Dashboard administrateur',
             contactUs: 'Contactez-nous',
-            rights: '© 2026 ANEAQ - Division de l Evaluation des Etablissements. Tous droits reserves.',
-            profile: 'Voir le profil',
-            logout: 'Se déconnecter',
-            reportValid: 'Rapport valide pour un etablissement.',
-            newExpert: 'Un nouvel expert a ete ajoute.',
-            visitPlanned: 'Une visite a ete planifiee par le coordinateur.',
-            alert1: '3 dossiers sont encore incomplets.',
-            alert2: '2 experts n ont pas encore confirme leur participation.',
-            alert3: '1 visite reste a programmer cette semaine.',
+            rights: '© 2026 ANEAQ - Division de l’Evaluation des Etablissements. Tous droits réservés.',
+            login: 'Connexion',
+            register: 'Inscription',
         };
 
         const ar = {
             about: 'حول المنصة',
             universities: 'الجامعات',
             guides: 'الأدلة',
+            dashboard: 'لوحة القيادة',
             backHome: 'العودة إلى الرئيسية',
             arabic: 'العربية',
             french: 'Français',
-            realTimeIndicators: 'مؤشرات آنية',
-            realTimeOverview: 'نظرة عامة على المؤشرات الآنية',
+            profile: 'الملف الشخصي',
+            logout: 'تسجيل الخروج',
+            heroBadge: 'منصة الوكالة الوطنية - تقييم المؤسسات',
+            heroTitle: 'إدارة تقييم المؤسسات داخل فضاء حديث ومركزي',
+            heroDesc:
+                'قم بتدبير حملات التقييم، المؤسسات، الخبراء، الملفات والزيارات من خلال واجهة واضحة ومهنية ومتكاملة.',
+            createWave: 'إنشاء حملة تقييم',
+            accessDashboard: 'الدخول إلى لوحة القيادة',
+            discoverModules: 'اكتشف الوحدات',
+            statsTitle: 'أرقام أساسية',
+            statsSubtitle: 'نظرة سريعة ومبسطة على أهم وحدات التسيير.',
             etablissements: 'المؤسسات',
             experts: 'الخبراء',
+            vagues: 'الحملات',
             dossiers: 'الملفات',
-            rapports: 'التقارير',
             visites: 'الزيارات',
-            recommandations: 'التوصيات',
-            structures: 'المؤسسات المنخرطة',
-            evaluateurs: 'الخبراء المعتمدون',
-            affectations: 'الملفات الموزعة',
-            livrables: 'التقارير المجمعة',
-            sessions: 'الزيارات المبرمجة',
-            actionsSuivi: 'إجراءات التتبع',
-            seeDetail: 'عرض التفاصيل',
-            pilotage: 'القيادة',
-            campaignTitle: 'تدبير حملات التقييم',
-            campaignDesc:
-                'يمكنك الولوج بسرعة إلى أهم مراحل عمل مديرية تقييم المؤسسات داخل فضاء أوضح وأكثر مهنية وحداثة.',
-            utilisateur: 'المستخدم',
-            activite: 'الجهة',
-            dashboardWorkflow: 'مسار لوحة القيادة',
-            mainActions: 'الإجراءات الرئيسية',
-            quickNavigation: 'تنقل سريع',
-            manageEtablissements: 'تدبير المؤسسات',
-            manageExperts: 'تدبير الخبراء',
-            selectEtablissements: 'اختيار المؤسسات',
-            selectExperts: 'اختيار الخبراء',
-            committee: 'تشكيل اللجنة',
-            assignDossiers: 'إسناد الملفات',
-            planVisits: 'تنظيم الزيارات',
-            followRecommendations: 'تتبع التوصيات',
-            alerts: 'تنبيهات',
-            pointsAttention: 'نقاط الانتباه',
-            activities: 'الأنشطة',
-            latestOperations: 'آخر العمليات',
-            etabList: 'لائحة المؤسسات',
-            expertList: 'لائحة الخبراء',
-            seeAll: 'عرض الكل',
-            name: 'الاسم',
-            city: 'المدينة',
-            university: 'الجامعة',
-            email: 'البريد الإلكتروني',
-            noEtab: 'لا توجد مؤسسات.',
-            noExpert: 'لا يوجد خبراء.',
-            noHistory: 'لا يوجد سجل متاح.',
+            modulesTitle: 'الوحدات الرئيسية',
+            modulesSubtitle: 'المرتكزات الأساسية لمنصة التقييم.',
+            seeMore: 'عرض المزيد',
+            workflowTitle: 'كيف تعمل المنصة',
+            workflowSubtitle: 'مسار بسيط على مراحل لتدبير عمليات التقييم.',
+            step1Title: 'إنشاء حملة',
+            step1Desc: 'إنشاء حملة التقييم وتحديد معلوماتها العامة.',
+            step2Title: 'اختيار المؤسسات',
+            step2Desc: 'اختيار المؤسسات المعنية وتوليد حسابات الولوج.',
+            step3Title: 'تعيين الخبراء',
+            step3Desc: 'البحث عن الخبراء واختيارهم وربطهم بالملفات.',
+            step4Title: 'تتبع الملفات',
+            step4Desc: 'تتبع الحالات والوثائق والتقارير وتواريخ الزيارات.',
+            whyTitle: 'لماذا هذه المنصة؟',
+            whySubtitle: 'تجربة أوضح وأسرع وأكثر تنظيماً.',
+            why1: 'مركزة المعطيات والعمليات',
+            why2: 'تتبع واضح للحملات والملفات والزيارات',
+            why3: 'تنقل سريع بين الوحدات',
+            why4: 'واجهة احترافية ومنسجمة',
+            ctaTitle: 'هل أنت جاهز لبدء حملة تقييم جديدة؟',
+            ctaDesc:
+                'يمكنك الولوج مباشرة إلى إنشاء حملة جديدة أو فتح لوحة القيادة الإدارية لمتابعة عملك.',
             quickLinks: 'روابط سريعة',
             adminDashboard: 'لوحة الإدارة',
             contactUs: 'اتصل بنا',
             rights: '© 2026 الوكالة الوطنية - مديرية تقييم المؤسسات. جميع الحقوق محفوظة.',
-            profile: 'عرض الملف الشخصي',
-            logout: 'تسجيل الخروج',
-            reportValid: 'تم اعتماد تقرير مؤسسة.',
-            newExpert: 'تمت إضافة خبير جديد.',
-            visitPlanned: 'تمت برمجة زيارة من طرف المنسق.',
-            alert1: 'لا تزال 3 ملفات غير مكتملة.',
-            alert2: 'هناك خبيران لم يؤكدا مشاركتهما بعد.',
-            alert3: 'هناك زيارة واحدة يجب برمجتها هذا الأسبوع.',
+            login: 'تسجيل الدخول',
+            register: 'إنشاء حساب',
         };
 
         return isArabic ? ar : fr;
     }, [isArabic]);
-
-    const currentAlerts = alerts.length > 0 ? alerts : [t.alert1, t.alert2, t.alert3];
-
-    const currentActivities =
-        activities.length > 0
-            ? activities
-            : [
-                  { id: 1, description: t.reportValid },
-                  { id: 2, description: t.newExpert },
-                  { id: 3, description: t.visitPlanned },
-              ];
-
-    const topExperts = experts.slice(0, 10);
-    const topEtablissements = etablissements.slice(0, 10);
-
-    const statCards = [
-        {
-            label: t.etablissements,
-            value: stats.etablissements ?? 0,
-            icon: Building2,
-            iconTone: 'bg-blue-50 text-blue-600',
-            accentTone: 'bg-blue-500',
-            detail: t.structures,
-            route: '/etablissements',
-        },
-        {
-            label: t.experts,
-            value: stats.experts ?? 0,
-            icon: Users,
-            iconTone: 'bg-blue-50 text-blue-600',
-            accentTone: 'bg-blue-500',
-            detail: t.evaluateurs,
-            route: '/experts',
-        },
-        {
-            label: t.dossiers,
-            value: stats.dossiers ?? 0,
-            icon: ClipboardCheck,
-            iconTone: 'bg-blue-50 text-blue-600',
-            accentTone: 'bg-blue-500',
-            detail: t.affectations,
-            route: '/dossiers',
-        },
-        {
-            label: t.rapports,
-            value: stats.rapports ?? 0,
-            icon: FileText,
-            iconTone: 'bg-blue-50 text-blue-600',
-            accentTone: 'bg-blue-500',
-            detail: t.livrables,
-            route: '/dossiers?statut=Rapport%20re%C3%A7u',
-        },
-        {
-            label: t.visites,
-            value: stats.visites ?? 0,
-            icon: CalendarDays,
-            iconTone: 'bg-blue-50 text-blue-600',
-            accentTone: 'bg-blue-500',
-            detail: t.sessions,
-            route: '/workflow/visites',
-        },
-        {
-            label: t.recommandations,
-            value: stats.recommandations ?? 0,
-            icon: TrendingUp,
-            iconTone: 'bg-blue-50 text-blue-600',
-            accentTone: 'bg-blue-500',
-            detail: t.actionsSuivi,
-            route: '/workflow/recommandations',
-        },
-    ];
-
-    const quickActions = [
-        { label: t.manageEtablissements, route: '/etablissements' },
-        { label: t.manageExperts, route: '/experts' },
-        { label: t.selectEtablissements, route: '/workflow/selection-etablissements' },
-        { label: t.selectExperts, route: '/workflow/selection-experts' },
-        { label: t.committee, route: '/workflow/comites' },
-        { label: t.assignDossiers, route: '/workflow/affectations' },
-        { label: t.planVisits, route: '/workflow/visites' },
-        { label: t.followRecommendations, route: '/workflow/recommandations' },
-    ];
 
     const universities = [
         { name: 'Université Mohammed V – Rabat', link: 'http://www.um5.ac.ma/um5/' },
         { name: 'Université Hassan II – Casablanca', link: 'http://www.uh2c.ac.ma/' },
         { name: 'Université Cadi Ayyad – Marrakech', link: 'http://www.uca.ma' },
         { name: 'Université Sidi Mohammed Ben Abdellah – Fès', link: 'http://www.usmba.ac.ma/' },
-        { name: 'Université Al Quaraouiyine – Fès', link: 'http://www.uaq.ma' },
         { name: 'Université Moulay Ismail – Meknès', link: 'http://www.umi.ac.ma' },
-        { name: 'Université Hassan Premier – Settat', link: 'http://www.uh1.ac.ma/' },
         { name: 'Université Abdelmalek Essaadi – Tétouan', link: 'http://www.uae.ma/' },
-        { name: 'Université Ibn Zohr – Agadir', link: 'http://www.uiz.ac.ma' },
-        { name: 'Université Chouaïb Doukkali - El Jadida', link: 'http://www.ucd.ac.ma' },
-        { name: 'Université Mohammed Premier – Oujda', link: 'http://www.ump.ma/' },
-        { name: 'Université Ibn Tofail – Kénitra', link: 'http://www.univ-ibntofail.ac.ma' },
-        { name: 'Université Sultan Moulay Slimane – Béni Mellal', link: 'http://www.usms.ac.ma/' },
-        { name: 'Université Al Akhawayn – Ifrane', link: 'http://www.aui.ma/en/' },
     ];
+
+    const stats = [
+        {
+            label: t.etablissements,
+            value: '163',
+            icon: Building2,
+            route: '/etablissements',
+        },
+        {
+            label: t.experts,
+            value: '242',
+            icon: Users,
+            route: '/experts',
+        },
+        {
+            label: t.vagues,
+            value: '1',
+            icon: Layers3,
+            route: '/campagnes',
+        },
+        {
+            label: t.dossiers,
+            value: '1',
+            icon: ClipboardCheck,
+            route: '/dossiers',
+        },
+        {
+            label: t.visites,
+            value: '1',
+            icon: CalendarDays,
+            route: '/workflow/visites',
+        },
+    ];
+
+    const modules = [
+        {
+            title: t.etablissements,
+            desc: "Gestion des établissements, consultation, recherche et rattachement aux vagues.",
+            icon: Building2,
+            route: '/etablissements',
+        },
+        {
+            title: t.experts,
+            desc: "Gestion des experts, recherche, filtrage, affectation et suivi.",
+            icon: Users,
+            route: '/experts',
+        },
+        {
+            title: t.vagues,
+            desc: "Création, pilotage et suivi des vagues d’évaluation.",
+            icon: Layers3,
+            route: '/campagnes',
+        },
+        {
+            title: t.dossiers,
+            desc: "Suivi des dossiers, statuts, documents et expertises.",
+            icon: ClipboardCheck,
+            route: '/dossiers',
+        },
+        {
+            title: t.visites,
+            desc: "Planification et suivi des dates de visite programmées.",
+            icon: CalendarDays,
+            route: '/workflow/visites',
+        },
+        {
+            title: t.dashboard,
+            desc: "Tableau de bord global pour piloter l’ensemble de la plateforme.",
+            icon: ShieldCheck,
+            route: '/dashboard',
+        },
+    ];
+
+    const workflowSteps = [
+        { title: t.step1Title, desc: t.step1Desc },
+        { title: t.step2Title, desc: t.step2Desc },
+        { title: t.step3Title, desc: t.step3Desc },
+        { title: t.step4Title, desc: t.step4Desc },
+    ];
+
+    const whyItems = [t.why1, t.why2, t.why3, t.why4];
 
     return (
         <>
-            <Head title="Dashboard Administrateur DEE" />
-            <div dir={isArabic ? 'rtl' : 'ltr'} className="min-h-screen bg-[#f6f8fc]">
+            <Head title="Accueil - ANEAQ" />
 
-                {/* ─── HEADER ─────────────────────────────────────────────── */}
+            <div dir={isArabic ? 'rtl' : 'ltr'} className="min-h-screen bg-[#f6f8fc] text-slate-800">
+                {/* HEADER */}
                 <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur-md shadow-sm">
                     <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
                         <div className="flex items-center gap-6">
@@ -306,15 +264,18 @@ export default function AdminDashboard({
                                     onError={(e) => (e.currentTarget.style.display = 'none')}
                                 />
                             </Link>
+
                             <div className="hidden xl:flex items-center gap-8 text-sm font-semibold text-slate-700">
                                 <Link href="/" className="transition hover:text-blue-600">
                                     {t.about}
                                 </Link>
+
                                 <div className="relative group">
                                     <button type="button" className="flex items-center gap-1 transition hover:text-blue-600">
                                         {t.universities} <ChevronDown size={16} />
                                     </button>
-                                    <div className="absolute left-0 top-full hidden w-[640px] rounded-2xl border border-slate-100 bg-white p-5 shadow-2xl group-hover:block">
+
+                                    <div className="absolute left-0 top-full hidden w-[620px] rounded-2xl border border-slate-100 bg-white p-5 shadow-2xl group-hover:block">
                                         <div className="grid grid-cols-2 gap-x-6 gap-y-2">
                                             {universities.map((u, i) => (
                                                 <a
@@ -322,15 +283,15 @@ export default function AdminDashboard({
                                                     href={u.link}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="flex items-center justify-between rounded-xl border-b border-slate-50 p-2.5 text-sm font-medium transition hover:bg-blue-50 hover:text-blue-700"
+                                                    className="rounded-xl border-b border-slate-50 p-2.5 text-sm font-medium transition hover:bg-blue-50 hover:text-blue-700"
                                                 >
-                                                    <span className="truncate pr-2">{u.name}</span>
-                                                    <ExternalLink size={14} className="shrink-0 text-blue-400" />
+                                                    {u.name}
                                                 </a>
                                             ))}
                                         </div>
                                     </div>
                                 </div>
+
                                 <Link href="/" className="transition hover:text-blue-600">
                                     {t.guides}
                                 </Link>
@@ -347,368 +308,271 @@ export default function AdminDashboard({
                                 {isArabic ? t.french : t.arabic}
                             </button>
 
-                            <div className="relative" ref={menuRef}>
-                                <button
-                                    type="button"
-                                    onClick={() => setProfileMenuOpen((prev) => !prev)}
-                                    className="hidden lg:flex items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-600"
-                                >
-                                    {auth?.user?.name || 'Administrateur'}
-                                    <ChevronDown size={16} />
-                                </button>
-                                {profileMenuOpen && (
-                                    <div className="absolute right-0 mt-3 w-56 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
-                                        <Link
-                                            href="/profile"
-                                            className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                            {auth?.user ? (
+                                <>
+                                    <div className="relative" ref={menuRef}>
+                                        <button
+                                            type="button"
+                                            onClick={() => setProfileMenuOpen((prev) => !prev)}
+                                            className="hidden lg:flex items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-600"
                                         >
-                                            <User size={18} />
-                                            {t.profile}
-                                        </Link>
-                                        <Link
-                                            href="/logout"
-                                            method="post"
-                                            as="button"
-                                            className="flex w-full items-center gap-3 px-4 py-3 text-sm font-medium text-red-600 transition hover:bg-red-50"
-                                        >
-                                            <LogOut size={18} />
-                                            {t.logout}
-                                        </Link>
-                                    </div>
-                                )}
-                            </div>
+                                            {auth.user.name}
+                                            <ChevronDown size={16} />
+                                        </button>
 
-                            <Link
-                                href="/"
-                                className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700"
-                            >
-                                {t.backHome}
-                            </Link>
+                                        {profileMenuOpen && (
+                                            <div className="absolute right-0 mt-3 w-56 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
+                                                <Link
+                                                    href="/profile"
+                                                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                                                >
+                                                    <User size={18} />
+                                                    {t.profile}
+                                                </Link>
+
+                                                <Link
+                                                    href="/logout"
+                                                    method="post"
+                                                    as="button"
+                                                    className="flex w-full items-center gap-3 px-4 py-3 text-sm font-medium text-red-600 transition hover:bg-red-50"
+                                                >
+                                                    <LogOut size={18} />
+                                                    {t.logout}
+                                                </Link>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <Link
+                                        href="/dashboard"
+                                        className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700"
+                                    >
+                                        {t.dashboard}
+                                    </Link>
+                                </>
+                            ) : (
+                                <>
+                                    <Link
+                                        href="/login"
+                                        className="rounded-xl border border-slate-300 px-5 py-2.5 text-sm font-bold text-slate-700 transition hover:border-blue-600 hover:text-blue-600"
+                                    >
+                                        {t.login}
+                                    </Link>
+
+                                    <Link
+                                        href="/register"
+                                        className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700"
+                                    >
+                                        {t.register}
+                                    </Link>
+                                </>
+                            )}
                         </div>
                     </div>
                 </header>
 
-                {/* ─── STATS ──────────────────────────────────────────────── */}
-                <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-                    <div className="mb-6 flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-bold uppercase tracking-[0.24em] text-blue-600">
-                                {t.realTimeIndicators}
-                            </p>
-                            <h3 className="mt-2 text-2xl font-black text-blue-950">
-                                {t.realTimeOverview}
-                            </h3>
-                        </div>
-                        <button
-                            type="button"
-                            onClick={() => (window.location.href = '/campagnes/create')}
-                            className="group relative flex min-h-[58px] min-w-[280px] items-center justify-center overflow-hidden rounded-[1.3rem] bg-[#223270] px-6 py-4 text-base font-semibold text-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-900/30 active:scale-95"
-                        >
-                            <span className="relative z-10 transition-transform duration-300 group-hover:scale-105">
-                                Créer une vague d’évaluation
+                {/* HERO */}
+                <section className="relative overflow-hidden">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(37,99,235,0.12),_transparent_35%),radial-gradient(circle_at_bottom_right,_rgba(14,165,233,0.12),_transparent_35%)]" />
+                    <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:px-8 lg:py-24">
+                        <div className="flex flex-col justify-center">
+                            <span className="inline-flex w-fit items-center rounded-full bg-blue-100 px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] text-blue-700">
+                                {t.heroBadge}
                             </span>
-                            <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-500 group-hover:translate-x-full" />
-                        </button>
+
+                            <h1 className="mt-6 text-4xl font-black leading-tight text-blue-950 sm:text-5xl lg:text-6xl">
+                                {t.heroTitle}
+                            </h1>
+
+                            <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600">
+                                {t.heroDesc}
+                            </p>
+
+                           <div className="mt-8">
+    <button
+        type="button"
+        onClick={() => router.visit('/campagnes/create')}
+        className="inline-flex min-w-[340px] items-center justify-center rounded-2xl bg-[#223270] px-12 py-5 text-base font-black text-white shadow-xl shadow-blue-950/20 transition hover:-translate-y-0.5 hover:bg-[#1b285a] active:scale-95"
+    >
+        {t.createWave}
+    </button>
+</div>
+                        </div>
+
+                        <div className="flex items-center justify-center">
+                            <div className="w-full rounded-[2rem] bg-gradient-to-br from-[#223270] via-[#2f5fe4] to-[#0ea5c6] p-8 text-white shadow-2xl">
+                                <p className="text-sm font-bold uppercase tracking-[0.28em] text-blue-100">
+                                    ANEAQ
+                                </p>
+                                <h2 className="mt-4 text-3xl font-black">
+                                    {t.discoverModules}
+                                </h2>
+
+                                <div className="mt-8 grid gap-4 sm:grid-cols-2">
+                                    {stats.map((item) => {
+                                        const Icon = item.icon;
+                                        return (
+                                            <button
+                                                key={item.label}
+                                                type="button"
+                                                onClick={() => router.visit(item.route)}
+                                                className="rounded-2xl bg-white/10 p-5 text-left backdrop-blur transition hover:bg-white/20"
+                                            >
+                                                <Icon size={24} />
+                                                <p className="mt-4 text-sm uppercase tracking-[0.2em] text-blue-100">
+                                                    {item.label}
+                                                </p>
+                                                <p className="mt-2 text-3xl font-black">{item.value}</p>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* STATS */}
+                <section className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+                    <div className="mb-8 text-center">
+                        <p className="text-sm font-bold uppercase tracking-[0.24em] text-blue-600">
+                            {t.statsTitle}
+                        </p>
+                        <h2 className="mt-2 text-3xl font-black text-blue-950">{t.statsSubtitle}</h2>
                     </div>
 
-                    <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-                        {statCards.map((card) => {
-                            const Icon = card.icon;
+                    <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-5">
+                        {stats.map((item) => {
+                            const Icon = item.icon;
                             return (
                                 <div
-                                    key={card.label}
-                                    onClick={() => router.visit(card.route)}
-                                    className="group relative cursor-pointer overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-7 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg"
+                                    key={item.label}
+                                    className="rounded-[1.8rem] border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
                                 >
-                                    <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-blue-50 to-transparent opacity-80" />
-                                    <div className={`absolute bottom-0 left-0 h-1 w-full ${card.accentTone}`} />
-                                    <div className={`relative flex h-16 w-16 items-center justify-center rounded-2xl ${card.iconTone}`}>
-                                        <Icon size={30} />
+                                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+                                        <Icon size={26} />
                                     </div>
-                                    <p className="relative mt-7 text-sm font-bold uppercase tracking-[0.28em] text-slate-400">
-                                        {card.label}
+                                    <p className="mt-5 text-sm font-bold uppercase tracking-[0.24em] text-slate-400">
+                                        {item.label}
                                     </p>
-                                    <div className="relative mt-4">
-                                        <p className="text-5xl font-black leading-none text-blue-950 sm:text-6xl">
-                                            {card.value}
-                                        </p>
-                                    </div>
-                                    <p className="relative mt-5 text-sm font-medium text-slate-600">
-                                        {card.detail}
-                                    </p>
-                                    <div className="relative mt-6 flex items-center justify-between text-sm">
-                                        <button
-                                            type="button"
-                                            onClick={(event) => {
-                                                event.stopPropagation();
-                                                router.visit(card.route);
-                                            }}
-                                            className="font-semibold text-blue-700"
-                                        >
-                                            {t.seeDetail}
-                                        </button>
-                                        <ArrowRight size={18} className="text-blue-700 transition group-hover:translate-x-1" />
-                                    </div>
+                                    <p className="mt-2 text-5xl font-black text-blue-950">{item.value}</p>
                                 </div>
                             );
                         })}
                     </div>
                 </section>
 
-                {/* ─── PILOTAGE / QUICK ACTIONS ───────────────────────────── */}
-                <section className="border-y border-slate-200 bg-white">
-                    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-                        <div className="grid gap-8 xl:grid-cols-[1.1fr_1.9fr]">
-                            <div className="rounded-[2rem] bg-gradient-to-br from-[#13255c] to-[#223983] p-8 text-white shadow-xl shadow-blue-950/10">
-                                <p className="text-xs font-bold uppercase tracking-[0.3em] text-blue-100">
-                                    {t.pilotage}
-                                </p>
-                                <h1 className="mt-4 text-3xl font-black leading-tight">
-                                    {t.campaignTitle}
-                                </h1>
-                                <p className="mt-4 text-sm leading-7 text-blue-100">{t.campaignDesc}</p>
-                                <div className="mt-8 grid grid-cols-2 gap-4 border-t border-white/10 pt-6">
-                                    <div className="rounded-2xl bg-white/10 p-4">
-                                        <p className="text-xs uppercase tracking-[0.2em] text-blue-100">
-                                            {t.utilisateur}
-                                        </p>
-                                        <p className="mt-2 text-lg font-bold">
-                                            {auth?.user?.name || 'Administrateur'}
-                                        </p>
-                                    </div>
-                                    <div className="rounded-2xl bg-white/10 p-4">
-                                        <p className="text-xs uppercase tracking-[0.2em] text-blue-100">
-                                            {t.activite}
-                                        </p>
-                                        <p className="mt-2 text-lg font-bold">ANEAQ / DEE</p>
-                                    </div>
-                                </div>
-                            </div>
+                {/* MODULES */}
+                <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+                    <div className="mb-10 text-center">
+                        <p className="text-sm font-bold uppercase tracking-[0.24em] text-blue-600">
+                            {t.modulesTitle}
+                        </p>
+                        <h2 className="mt-2 text-3xl font-black text-blue-950">{t.modulesSubtitle}</h2>
+                    </div>
 
-                            <div className="rounded-[2rem] border border-slate-200 bg-slate-50 p-6 shadow-sm">
-                                <div className="mb-5 flex items-center justify-between gap-4">
-                                    <div>
-                                        <p className="text-sm font-bold uppercase tracking-[0.24em] text-blue-600">
-                                            {t.mainActions}
-                                        </p>
-                                        <h3 className="mt-2 text-2xl font-black text-blue-950">
-                                            {t.dashboardWorkflow}
-                                        </h3>
+                    <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                        {modules.map((module) => {
+                            const Icon = module.icon;
+
+                            return (
+                                <div
+                                    key={module.title}
+                                    className="group rounded-[2rem] border border-slate-200 bg-white p-7 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+                                >
+                                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+                                        <Icon size={26} />
                                     </div>
-                                    <div className="hidden md:flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-slate-500 shadow-sm">
-                                        <TrendingUp size={16} className="text-blue-600" />
-                                        {t.quickNavigation}
+
+                                    <h3 className="mt-6 text-2xl font-black text-blue-950">
+                                        {module.title}
+                                    </h3>
+
+                                    <p className="mt-4 text-sm leading-7 text-slate-600">
+                                        {module.desc}
+                                    </p>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => router.visit(module.route)}
+                                        className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-blue-700 transition group-hover:gap-3"
+                                    >
+                                        {t.seeMore}
+                                        <ArrowRight size={16} />
+                                    </button>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </section>
+
+                {/* WORKFLOW */}
+                <section className="border-y border-slate-200 bg-white">
+                    <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+                        <div className="mb-10 text-center">
+                            <p className="text-sm font-bold uppercase tracking-[0.24em] text-blue-600">
+                                {t.workflowTitle}
+                            </p>
+                            <h2 className="mt-2 text-3xl font-black text-blue-950">{t.workflowSubtitle}</h2>
+                        </div>
+
+                        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+                            {workflowSteps.map((step, index) => (
+                                <div
+                                    key={step.title}
+                                    className="rounded-[2rem] border border-slate-200 bg-slate-50 p-7"
+                                >
+                                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 text-lg font-black text-white">
+                                        {index + 1}
                                     </div>
+
+                                    <h3 className="mt-6 text-xl font-black text-blue-950">{step.title}</h3>
+                                    <p className="mt-3 text-sm leading-7 text-slate-600">{step.desc}</p>
                                 </div>
-                                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                                    {quickActions.map((action) => (
-                                        <button
-                                            key={action.label}
-                                            type="button"
-                                            onClick={() => router.visit(action.route)}
-                                            className="group flex min-h-[84px] items-center justify-between rounded-[1.6rem] bg-[#223270] px-6 py-5 text-left text-base font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#1b285a]"
-                                        >
-                                            <span className="pr-4 leading-6">{action.label}</span>
-                                            <ArrowRight size={18} className="shrink-0 transition group-hover:translate-x-0.5" />
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
+                            ))}
                         </div>
                     </div>
                 </section>
 
-                {/* ─── ALERTS & ACTIVITIES ────────────────────────────────── */}
-                <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-                    <div className="grid gap-8 xl:grid-cols-2">
-                        <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
-                            <div className="border-b border-slate-200 bg-slate-50 px-8 py-6">
-                                <div className="flex items-center gap-3">
-                                    <AlertTriangle className="text-orange-500" size={22} />
-                                    <div>
-                                        <p className="text-sm font-bold uppercase tracking-[0.24em] text-orange-500">
-                                            {t.alerts}
-                                        </p>
-                                        <h3 className="mt-1 text-2xl font-black text-blue-950">
-                                            {t.pointsAttention}
-                                        </h3>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="space-y-4 p-8">
-                                {currentAlerts.map((alert, index) => (
-                                    <div
-                                        key={index}
-                                        className="rounded-2xl border border-orange-100 bg-orange-50 px-5 py-4 text-sm font-medium text-slate-700"
-                                    >
-                                        {alert}
+                {/* WHY */}
+                <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+                    <div className="grid gap-10 lg:grid-cols-2">
+                        <div className="rounded-[2rem] bg-gradient-to-br from-[#13255c] to-[#223983] p-10 text-white shadow-xl">
+                            <p className="text-sm font-bold uppercase tracking-[0.24em] text-blue-100">
+                                {t.whyTitle}
+                            </p>
+                            <h2 className="mt-3 text-3xl font-black">{t.whySubtitle}</h2>
+                            <div className="mt-8 space-y-4">
+                                {whyItems.map((item) => (
+                                    <div key={item} className="flex items-start gap-3 rounded-2xl bg-white/10 p-4">
+                                        <CheckCircle2 className="mt-0.5 shrink-0 text-blue-200" size={20} />
+                                        <span className="text-sm leading-7 text-blue-50">{item}</span>
                                     </div>
                                 ))}
                             </div>
                         </div>
 
-                        <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
-                            <div className="border-b border-slate-200 bg-slate-50 px-8 py-6">
-                                <div className="flex items-center gap-3">
-                                    <Clock3 className="text-blue-600" size={22} />
-                                    <div>
-                                        <p className="text-sm font-bold uppercase tracking-[0.24em] text-blue-600">
-                                            {t.activities}
-                                        </p>
-                                        <h3 className="mt-1 text-2xl font-black text-blue-950">
-                                            {t.latestOperations}
-                                        </h3>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="space-y-4 p-8">
-                                {currentActivities.length > 0 ? (
-                                    currentActivities.map((activity, index) => (
-                                        <div
-                                            key={activity.id ?? index}
-                                            className="rounded-2xl border border-slate-100 bg-slate-50 px-5 py-4"
-                                        >
-                                            <p className="text-sm font-medium text-slate-700">
-                                                {activity.description ?? activity}
-                                            </p>
-                                            {activity.created_at && (
-                                                <p className="mt-2 text-xs text-slate-400">
-                                                    {new Date(activity.created_at).toLocaleString()}
-                                                </p>
-                                            )}
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="rounded-2xl border border-slate-100 bg-slate-50 px-5 py-4 text-sm text-slate-500">
-                                        {t.noHistory}
-                                    </div>
-                                )}
-                            </div>
+                        <div className="rounded-[2rem] border border-slate-200 bg-white p-10 shadow-sm">
+                            <p className="text-sm font-bold uppercase tracking-[0.24em] text-blue-600">
+                                ANEAQ
+                            </p>
+                            <h2 className="mt-3 text-3xl font-black text-blue-950">{t.ctaTitle}</h2>
+                            <p className="mt-5 text-base leading-8 text-slate-600">{t.ctaDesc}</p>
+
+                           <div className="mt-8">
+    <button
+        type="button"
+        onClick={() => router.visit('/campagnes/create')}
+        className="inline-flex min-w-[320px] items-center justify-center rounded-2xl bg-[#223270] px-10 py-4 text-sm font-black text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-[#1b285a] active:scale-95"
+    >
+        {t.createWave}
+    </button>
+</div>
                         </div>
                     </div>
                 </section>
 
-                {/* ─── ETABLISSEMENTS & EXPERTS TABLES ───────────────────── */}
-                <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
-                    <div className="grid gap-8 xl:grid-cols-2">
-                        {/* Etablissements */}
-                        <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
-                            <div className="border-b border-slate-200 bg-slate-50 px-8 py-6">
-                                <p className="text-sm font-bold uppercase tracking-[0.24em] text-blue-600">
-                                    {t.etablissements}
-                                </p>
-                                <h3 className="mt-2 text-2xl font-black text-blue-950">{t.etabList}</h3>
-                            </div>
-                            <div className="p-8 pb-4">
-                                <div className="max-h-[420px] overflow-y-auto overflow-x-auto pr-2">
-                                    <table className="min-w-full text-sm">
-                                        <thead className="sticky top-0 z-10 bg-white">
-                                            <tr className="border-b border-slate-100 text-left text-slate-400">
-                                                <th className="pb-4 pr-4 font-bold">{t.name}</th>
-                                                <th className="pb-4 pr-4 font-bold">{t.city}</th>
-                                                <th className="pb-4 pr-4 font-bold">{t.university}</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {topEtablissements.length > 0 ? (
-                                                topEtablissements.map((item) => (
-                                                    <tr key={item.id} className="border-b border-slate-100 last:border-0">
-                                                        <td className="py-4 pr-4 font-semibold text-blue-950">
-                                                            {item.etablissement || '-'}
-                                                        </td>
-                                                        <td className="py-4 pr-4 text-slate-500">
-                                                            <span className="inline-flex items-center gap-2">
-                                                                <MapPin size={15} className="text-blue-500" />
-                                                                {item.ville || '-'}
-                                                            </span>
-                                                        </td>
-                                                        <td className="py-4 pr-4 text-slate-500">
-                                                            {item.universite || '-'}
-                                                        </td>
-                                                    </tr>
-                                                ))
-                                            ) : (
-                                                <tr>
-                                                    <td colSpan="3" className="py-8 text-slate-500">
-                                                        {t.noEtab}
-                                                    </td>
-                                                </tr>
-                                            )}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            <div className="flex justify-center px-8 pb-8 pt-2">
-                                <button
-                                    type="button"
-                                    onClick={() => router.visit('/etablissements')}
-                                    className="group flex min-h-[58px] min-w-[260px] items-center justify-between rounded-[1.3rem] bg-[#223270] px-6 py-4 text-base font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#1b285a]"
-                                >
-                                    <span>{t.seeAll}</span>
-                                    <ArrowRight size={18} className="shrink-0 transition group-hover:translate-x-0.5" />
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Experts */}
-                        <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
-                            <div className="border-b border-slate-200 bg-slate-50 px-8 py-6">
-                                <p className="text-sm font-bold uppercase tracking-[0.24em] text-blue-600">
-                                    {t.experts}
-                                </p>
-                                <h3 className="mt-2 text-2xl font-black text-blue-950">{t.expertList}</h3>
-                            </div>
-                            <div className="p-8 pb-4">
-                                <div className="max-h-[420px] overflow-y-auto overflow-x-auto pr-2">
-                                    <table className="min-w-full text-sm">
-                                        <thead className="sticky top-0 z-10 bg-white">
-                                            <tr className="border-b border-slate-100 text-left text-slate-400">
-                                                <th className="pb-4 pr-4 font-bold">{t.name}</th>
-                                                <th className="pb-4 pr-4 font-bold">{t.email}</th>
-                                                <th className="pb-4 pr-4 font-bold">{t.city}</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {topExperts.length > 0 ? (
-                                                topExperts.map((expert) => (
-                                                    <tr key={expert.id} className="border-b border-slate-100 last:border-0">
-                                                        <td className="py-4 pr-4 font-semibold text-blue-950">
-                                                            {expert.nom} {expert.prenom}
-                                                        </td>
-                                                        <td className="py-4 pr-4 text-slate-500">
-                                                            {expert.email || '-'}
-                                                        </td>
-                                                        <td className="py-4 pr-4 text-slate-500">
-                                                            {expert.ville || '-'}
-                                                        </td>
-                                                    </tr>
-                                                ))
-                                            ) : (
-                                                <tr>
-                                                    <td colSpan="3" className="py-8 text-slate-500">
-                                                        {t.noExpert}
-                                                    </td>
-                                                </tr>
-                                            )}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            <div className="flex justify-center px-8 pb-8 pt-2">
-                                <button
-                                    type="button"
-                                    onClick={() => router.visit('/experts')}
-                                    className="group flex min-h-[58px] min-w-[260px] items-center justify-between rounded-[1.3rem] bg-[#223270] px-6 py-4 text-base font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#1b285a]"
-                                >
-                                    <span>{t.seeAll}</span>
-                                    <ArrowRight size={18} className="shrink-0 transition group-hover:translate-x-0.5" />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                {/* ─── FOOTER ─────────────────────────────────────────────── */}
+                {/* FOOTER */}
                 <footer className="bg-blue-950 pb-8 pt-20 text-white md:pt-24">
                     <div className="mx-auto max-w-7xl px-4">
                         <div className="mb-16 grid gap-12 border-b border-white/10 pb-16 sm:grid-cols-2 lg:grid-cols-4">
@@ -722,9 +586,9 @@ export default function AdminDashboard({
                                     />
                                     ANEAQ
                                 </span>
+
                                 <p className="text-sm leading-relaxed text-blue-200/70">
-                                    Agence Nationale d Evaluation et d Assurance Qualite de
-                                    l Enseignement Superieur et de la Recherche Scientifique.
+                                    Agence Nationale d’Evaluation et d’Assurance Qualité de l’Enseignement Supérieur et de la Recherche Scientifique.
                                 </p>
                             </div>
 
@@ -743,7 +607,7 @@ export default function AdminDashboard({
                                     <li>
                                         <button
                                             type="button"
-                                            onClick={() => router.visit('/campagnes')}
+                                            onClick={() => router.visit('/etablissements')}
                                             className="transition hover:text-white"
                                         >
                                             {t.etablissements}
@@ -756,6 +620,33 @@ export default function AdminDashboard({
                                             className="transition hover:text-white"
                                         >
                                             {t.experts}
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button
+                                            type="button"
+                                            onClick={() => router.visit('/campagnes')}
+                                            className="transition hover:text-white"
+                                        >
+                                            {t.vagues}
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button
+                                            type="button"
+                                            onClick={() => router.visit('/dossiers')}
+                                            className="transition hover:text-white"
+                                        >
+                                            {t.dossiers}
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button
+                                            type="button"
+                                            onClick={() => router.visit('/workflow/visites')}
+                                            className="transition hover:text-white"
+                                        >
+                                            {t.visites}
                                         </button>
                                     </li>
                                 </ul>
@@ -773,6 +664,7 @@ export default function AdminDashboard({
                                                 Rabat - Morocco
                                             </span>
                                         </div>
+
                                         <div className="flex items-center gap-4 text-sm text-blue-200/70">
                                             <Mail className="shrink-0 text-blue-400" size={20} />
                                             <a href="mailto:contact@aneaq.ma" className="transition hover:text-white">
@@ -780,11 +672,13 @@ export default function AdminDashboard({
                                             </a>
                                         </div>
                                     </div>
+
                                     <div className="space-y-5">
                                         <div className="flex items-center gap-4 text-sm text-blue-200/70">
                                             <Phone className="shrink-0 text-blue-400" size={20} />
                                             <span dir="ltr">+212 537 27 16 08</span>
                                         </div>
+
                                         <div className="flex items-center gap-4 text-sm text-blue-200/70">
                                             <Printer className="shrink-0 text-blue-400" size={20} />
                                             <span dir="ltr">+212 537 27 16 07</span>
@@ -799,7 +693,6 @@ export default function AdminDashboard({
                         </div>
                     </div>
                 </footer>
-
             </div>
         </>
     );

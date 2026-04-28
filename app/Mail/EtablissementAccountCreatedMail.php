@@ -13,29 +13,38 @@ class EtablissementAccountCreatedMail extends Mailable
     public string $etablissementName;
     public string $loginEmail;
     public string $plainPassword;
-    public ?string $campagneReference;
-    public ?string $dossierReference;
+    public string $dossierReference;
+    public string $campagneReference;
     public string $logoPath;
 
     public function __construct(
         string $etablissementName,
         string $loginEmail,
         string $plainPassword,
-        ?string $campagneReference = null,
-        ?string $dossierReference = null
+        string $dossierReference = '—',
+        string $campagneReference = '—',
+        string $logoPath = ''
     ) {
         $this->etablissementName = $etablissementName;
         $this->loginEmail = $loginEmail;
         $this->plainPassword = $plainPassword;
-        $this->campagneReference = $campagneReference;
         $this->dossierReference = $dossierReference;
-        $this->logoPath = public_path('images/logo-aneaq.png');
+        $this->campagneReference = $campagneReference;
+        $this->logoPath = $logoPath;
     }
 
-    public function build(): self
+    public function build()
     {
         return $this
-            ->subject('Sélection à l’évaluation institutionnelle - ANEAQ')
-            ->view('emails.etablissement_account_created');
+            ->subject('Accès établissement ANEAQ')
+            ->view('emails.etablissement_account_created')
+            ->with([
+                'etablissementName' => $this->etablissementName,
+                'loginEmail' => $this->loginEmail,
+                'plainPassword' => $this->plainPassword,
+                'dossierReference' => $this->dossierReference,
+                'campagneReference' => $this->campagneReference,
+                'logoPath' => $this->logoPath,
+            ]);
     }
 }

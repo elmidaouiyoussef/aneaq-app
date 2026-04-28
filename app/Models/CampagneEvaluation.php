@@ -2,13 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CampagneEvaluation extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'reference',
         'annee',
@@ -16,20 +15,21 @@ class CampagneEvaluation extends Model
         'observation',
         'statut',
         'created_by',
+        'created_by_name',
     ];
 
-    public function etablissements()
-    {
-        return $this->hasMany(CampagneEtablissement::class);
-    }
-
-    public function dossiers()
-    {
-        return $this->hasMany(Dossier::class);
-    }
-
-    public function creator()
+    public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function campagneEtablissements(): HasMany
+    {
+        return $this->hasMany(CampagneEtablissement::class, 'campagne_evaluation_id');
+    }
+
+    public function dossiers(): HasMany
+    {
+        return $this->hasMany(Dossier::class, 'campagne_evaluation_id');
     }
 }

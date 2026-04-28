@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Dossier extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'campagne_evaluation_id',
         'reference',
@@ -19,37 +19,45 @@ class Dossier extends Model
         'statut',
         'etablissement_id',
         'created_by',
+        'date_visite',
     ];
 
-    public function etablissement()
-    {
-        return $this->belongsTo(Etablissement::class);
-    }
+    protected $casts = [
+        'date_visite' => 'date',
+    ];
 
-    public function campagneEvaluation()
+    public function campagneEvaluation(): BelongsTo
     {
         return $this->belongsTo(CampagneEvaluation::class, 'campagne_evaluation_id');
     }
 
-    public function creator()
+    public function etablissement(): BelongsTo
+    {
+        return $this->belongsTo(Etablissement::class, 'etablissement_id');
+    }
+
+    public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function campagneEtablissement()
+    public function expertAssignments(): HasMany
     {
-        return $this->hasOne(CampagneEtablissement::class);
+        return $this->hasMany(DossierExpert::class, 'dossier_id');
     }
 
-    public function experts()
+    public function experts(): BelongsToMany
     {
-        return $this->belongsToMany(Expert::class, 'dossier_experts')
-            ->withPivot(['role', 'statut_participation', 'confirmed_at', 'validated_by_dee_at'])
-            ->withTimestamps();
+        return $this->belongsToMany(
+            Expert::class,
+            'dossier_experts',
+            'dossier_id',
+            'expert_id'
+        )->withTimestamps();
     }
 
-    public function documents()
+    public function documents(): HasMany
     {
-        return $this->hasMany(Document::class);
+        return $this->hasMany(DossierDocument::class, 'dossier_id');
     }
 }

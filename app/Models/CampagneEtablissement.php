@@ -2,48 +2,36 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class CampagneEtablissement extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'campagne_evaluation_id',
         'etablissement_id',
         'statut',
-        'observation',
-        'lettre_envoyee_at',
-        'email_envoye_at',
-        'compte_genere_at',
-        'dossier_id',
-        'selected_by',
+        'email',
+        'access_sent_at',
     ];
 
     protected $casts = [
-        'lettre_envoyee_at' => 'datetime',
-        'email_envoye_at' => 'datetime',
-        'compte_genere_at' => 'datetime',
+        'access_sent_at' => 'datetime',
     ];
 
-    public function campagne()
+    public function campagne(): BelongsTo
     {
         return $this->belongsTo(CampagneEvaluation::class, 'campagne_evaluation_id');
     }
 
-    public function etablissement()
+    public function etablissement(): BelongsTo
     {
-        return $this->belongsTo(Etablissement::class);
+        return $this->belongsTo(Etablissement::class, 'etablissement_id');
     }
 
-    public function dossier()
+    public function dossier(): HasOne
     {
-        return $this->belongsTo(Dossier::class);
-    }
-
-    public function selector()
-    {
-        return $this->belongsTo(User::class, 'selected_by');
+        return $this->hasOne(Dossier::class, 'campagne_etablissement_id');
     }
 }

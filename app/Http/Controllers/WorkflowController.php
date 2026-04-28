@@ -99,26 +99,68 @@ class WorkflowController extends Controller
     }
 
     public function visites()
-    {
-        $dossiers = Dossier::with(['campagneEvaluation', 'etablissement'])
-            ->withCount(['experts', 'documents'])
-            ->whereIn('statut', ['Experts affectés', 'En cours d’autoévaluation', 'Rapport reçu'])
-            ->latest()
-            ->get()
-            ->map(fn (Dossier $dossier) => [
+{
+    $dossiers = \App\Models\Dossier::query()
+        ->with([
+            'etablissement',
+            'campagneEvaluation',
+        ])
+        ->withCount([
+            'expertAssignments',
+            'documents',
+        ])
+        ->whereNotNull('date_visite')
+        ->where('statut', 'Date de visite planifiée')
+        ->orderBy('date_visite', 'asc')
+        ->get()
+        ->map(function ($dossier) {
+            $dateVisite = null;
+            $dateVisiteFormatted = 'Non définie';
+
+            if ($dossier->date_visite) {
+                try {
+                    $dateVisite = \Carbon\Carbon::parse($dossier->date_visite);
+                    $dateVisiteFormatted = $dateVisite->format('d/m/Y');
+                } catch (\Exception $e) {
+                    $dateVisiteFormatted = $dossier->date_visite;
+                }
+            }
+
+            return [
                 'id' => $dossier->id,
                 'reference' => $dossier->reference,
+                'nom' => $dossier->nom,
                 'statut' => $dossier->statut,
-                'campagne' => $dossier->campagneEvaluation?->reference ?: $dossier->campagne,
-                'etablissement' => $dossier->etablissement?->etablissement_2 ?: $dossier->etablissement?->etablissement,
-                'experts_count' => $dossier->experts_count,
-                'documents_count' => $dossier->documents_count,
-            ]);
+                'date_visite' => $dossier->date_visite,
+                'date_visite_formatted' => $dateVisiteFormatted,
+                'created_at' => optional($dossier->created_at)->format('d/m/Y H:i'),
 
-        return Inertia::render('Workflow/Visites', [
-            'dossiers' => $dossiers,
-        ]);
-    }
+                'campagne' => $dossier->campagneEvaluation->reference
+                    ?? $dossier->campagne
+                    ?? '—',
+
+                'etablissement' => [
+                    'nom' => $dossier->etablissement->etablissement_2
+                        ?? $dossier->etablissement->etablissement
+                        ?? $dossier->etablissement->nom
+                        ?? '—',
+                    'ville' => $dossier->etablissement->ville ?? '—',
+                    'universite' => $dossier->etablissement->universite
+                        ?? $dossier->etablissement->universite_nom
+                        ?? '—',
+                    'email' => $dossier->etablissement->email ?? '—',
+                ],
+
+                'experts_count' => (int) ($dossier->expert_assignments_count ?? 0),
+                'documents_count' => (int) ($dossier->documents_count ?? 0),
+            ];
+        })
+        ->values();
+
+    return \Inertia\Inertia::render('Workflow/Visites', [
+        'dossiers' => $dossiers,
+    ]);
+}
 
     public function recommandations()
     {

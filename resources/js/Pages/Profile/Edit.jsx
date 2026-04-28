@@ -1,40 +1,134 @@
-import DeleteUserForm from './Partials/DeleteUserForm';
-import UpdatePasswordForm from './Partials/UpdatePasswordForm';
-import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
-import { Head, Link, router, usePage } from '@inertiajs/react';
-import { ChevronDown, ExternalLink, Globe } from 'lucide-react';
-import { useMemo } from 'react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import {
+    ChevronDown,
+    Globe,
+    LockKeyhole,
+    LogOut,
+    Mail,
+    Save,
+    ShieldCheck,
+    Trash2,
+    User,
+    UserCircle2,
+} from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 export default function Edit({ mustVerifyEmail, status }) {
-    const { auth, locale } = usePage().props;
-    const user = auth?.user;
+    const { props } = usePage();
+    const auth = props.auth || {};
+    const locale = props.locale || 'fr';
     const isArabic = locale === 'ar';
+
+    const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+    const menuRef = useRef(null);
+
+    const profileForm = useForm({
+        name: auth?.user?.name || '',
+        email: auth?.user?.email || '',
+    });
+
+    const passwordForm = useForm({
+        current_password: '',
+        password: '',
+        password_confirmation: '',
+    });
+
+    const deleteForm = useForm({
+        password: '',
+    });
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
+                setProfileMenuOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     const t = useMemo(() => {
         const fr = {
             about: 'À propos',
             universities: 'Universités',
             guides: 'Guides',
-            backHome: "Retour à l'accueil",
-            dashboard: 'Dashboard',
-            profile: 'Profil',
             arabic: 'العربية',
             french: 'Français',
-            profileTitle: 'Mon profil',
-            profileDesc: 'Gérez vos informations personnelles et la sécurité de votre compte.',
+            profile: 'Profil',
+            logout: 'Se déconnecter',
+
+            pageBadge: 'Gestion du profil',
+            pageTitle: 'Mon profil utilisateur',
+            pageDesc:
+                'Consultez et mettez à jour les informations de votre compte administrateur depuis une interface claire, moderne et sécurisée.',
+
+            account: 'Compte',
+            name: 'Nom',
+            email: 'Email',
+            role: 'Rôle',
+            admin: 'Administrateur DEE',
+
+            personalInfo: 'Informations personnelles',
+            personalDesc: 'Modifiez le nom et l’adresse email associés à votre compte.',
+
+            security: 'Sécurité',
+            passwordInfo: 'Sécurité du compte',
+            passwordDesc: 'Mettez à jour votre mot de passe pour renforcer la sécurité.',
+            currentPassword: 'Mot de passe actuel',
+            newPassword: 'Nouveau mot de passe',
+            confirmPassword: 'Confirmer le mot de passe',
+
+            danger: 'Zone sensible',
+            deleteInfo: 'Suppression du compte',
+            deleteDesc:
+                'Cette action est définitive. Une fois votre compte supprimé, toutes les données associées seront supprimées.',
+            deletePassword: 'Confirmez avec votre mot de passe',
+            deleteButton: 'Supprimer le compte',
+
+            save: 'Enregistrer',
+            updated: 'Mis à jour avec succès',
         };
 
         const ar = {
             about: 'حول المنصة',
             universities: 'الجامعات',
             guides: 'الأدلة',
-            backHome: 'العودة إلى الرئيسية',
-            dashboard: 'لوحة القيادة',
-            profile: 'الملف الشخصي',
             arabic: 'العربية',
             french: 'Français',
-            profileTitle: 'ملفي الشخصي',
-            profileDesc: 'قم بإدارة معلوماتك الشخصية وأمان حسابك.',
+            profile: 'الملف الشخصي',
+            logout: 'تسجيل الخروج',
+
+            pageBadge: 'تدبير الملف الشخصي',
+            pageTitle: 'ملفي الشخصي',
+            pageDesc:
+                'يمكنك تحديث معلومات حسابك الإداري من خلال واجهة واضحة وحديثة وآمنة.',
+
+            account: 'الحساب',
+            name: 'الاسم',
+            email: 'البريد الإلكتروني',
+            role: 'الدور',
+            admin: 'مسؤول',
+
+            personalInfo: 'المعلومات الشخصية',
+            personalDesc: 'قم بتعديل الاسم والبريد الإلكتروني المرتبط بحسابك.',
+
+            security: 'الأمان',
+            passwordInfo: 'أمان الحساب',
+            passwordDesc: 'قم بتحديث كلمة المرور لتعزيز حماية الحساب.',
+            currentPassword: 'كلمة المرور الحالية',
+            newPassword: 'كلمة المرور الجديدة',
+            confirmPassword: 'تأكيد كلمة المرور',
+
+            danger: 'منطقة حساسة',
+            deleteInfo: 'حذف الحساب',
+            deleteDesc:
+                'هذه العملية نهائية. بعد حذف الحساب سيتم حذف البيانات المرتبطة به.',
+            deletePassword: 'أكد بكلمة المرور',
+            deleteButton: 'حذف الحساب',
+
+            save: 'حفظ',
+            updated: 'تم التحديث بنجاح',
         };
 
         return isArabic ? ar : fr;
@@ -45,24 +139,55 @@ export default function Edit({ mustVerifyEmail, status }) {
         { name: 'Université Hassan II – Casablanca', link: 'http://www.uh2c.ac.ma/' },
         { name: 'Université Cadi Ayyad – Marrakech', link: 'http://www.uca.ma' },
         { name: 'Université Sidi Mohammed Ben Abdellah – Fès', link: 'http://www.usmba.ac.ma/' },
-        { name: 'Université Al Quaraouiyine – Fès', link: 'http://www.uaq.ma' },
         { name: 'Université Moulay Ismail – Meknès', link: 'http://www.umi.ac.ma' },
-        { name: 'Université Hassan Premier – Settat', link: 'http://www.uh1.ac.ma/' },
         { name: 'Université Abdelmalek Essaadi – Tétouan', link: 'http://www.uae.ma/' },
-        { name: 'Université Ibn Zohr – Agadir', link: 'http://www.uiz.ac.ma' },
-        { name: 'Université Chouaïb Doukkali - El Jadida', link: 'http://www.ucd.ac.ma' },
-        { name: 'Université Mohammed Premier – Oujda', link: 'http://www.ump.ma/' },
-        { name: 'Université Ibn Tofail – Kénitra', link: 'http://www.univ-ibntofail.ac.ma' },
-        { name: 'Université Sultan Moulay Slimane – Béni Mellal', link: 'http://www.usms.ac.ma/' },
-        { name: 'Université Al Akhawayn – Ifrane', link: 'http://www.aui.ma/en/' },
     ];
+
+    const submitProfile = (e) => {
+        e.preventDefault();
+
+        profileForm.patch('/profile', {
+            preserveScroll: true,
+        });
+    };
+
+    const submitPassword = (e) => {
+        e.preventDefault();
+
+        passwordForm.put('/password', {
+            preserveScroll: true,
+            onSuccess: () => {
+                passwordForm.reset(
+                    'current_password',
+                    'password',
+                    'password_confirmation'
+                );
+            },
+        });
+    };
+
+    const submitDelete = (e) => {
+        e.preventDefault();
+
+        if (!confirm('Voulez-vous vraiment supprimer ce compte ?')) {
+            return;
+        }
+
+        deleteForm.delete('/profile', {
+            preserveScroll: true,
+        });
+    };
 
     return (
         <>
-            <Head title={t.profile} />
+            <Head title="Profil - ANEAQ" />
 
-            <div dir={isArabic ? 'rtl' : 'ltr'} className="min-h-screen bg-[#f6f8fc]">
-                <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur-md shadow-sm">
+            <div
+                dir={isArabic ? 'rtl' : 'ltr'}
+                className="min-h-screen bg-[#f6f8fc] text-slate-800"
+            >
+                {/* HEADER */}
+                <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur-md">
                     <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
                         <div className="flex items-center gap-6">
                             <Link href="/" className="flex items-center gap-4">
@@ -70,18 +195,24 @@ export default function Edit({ mustVerifyEmail, status }) {
                                     src="/images/logo-ministere.png"
                                     alt="Ministère"
                                     className="h-11 rounded-xl bg-white p-1.5 shadow-sm"
-                                    onError={(e) => (e.currentTarget.style.display = 'none')}
+                                    onError={(e) => {
+                                        e.currentTarget.style.display = 'none';
+                                    }}
                                 />
-                                <div className="h-9 w-px bg-slate-200"></div>
+
+                                <div className="h-9 w-px bg-slate-200" />
+
                                 <img
                                     src="/images/logo-aneaq.png"
                                     alt="ANEAQ"
                                     className="h-11 rounded-xl bg-white p-1.5 shadow-sm"
-                                    onError={(e) => (e.currentTarget.style.display = 'none')}
+                                    onError={(e) => {
+                                        e.currentTarget.style.display = 'none';
+                                    }}
                                 />
                             </Link>
 
-                            <div className="hidden xl:flex items-center gap-8 text-sm font-semibold text-slate-700">
+                            <div className="hidden items-center gap-8 text-sm font-semibold text-slate-700 xl:flex">
                                 <Link href="/" className="transition hover:text-blue-600">
                                     {t.about}
                                 </Link>
@@ -91,10 +222,11 @@ export default function Edit({ mustVerifyEmail, status }) {
                                         type="button"
                                         className="flex items-center gap-1 transition hover:text-blue-600"
                                     >
-                                        {t.universities} <ChevronDown size={16} />
+                                        {t.universities}
+                                        <ChevronDown size={16} />
                                     </button>
 
-                                    <div className="absolute left-0 top-full hidden w-[640px] rounded-2xl border border-slate-100 bg-white p-5 shadow-2xl group-hover:block">
+                                    <div className="absolute left-0 top-full hidden w-[620px] rounded-2xl border border-slate-100 bg-white p-5 shadow-2xl group-hover:block">
                                         <div className="grid grid-cols-2 gap-x-6 gap-y-2">
                                             {universities.map((u, i) => (
                                                 <a
@@ -102,13 +234,9 @@ export default function Edit({ mustVerifyEmail, status }) {
                                                     href={u.link}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="flex items-center justify-between rounded-xl border-b border-slate-50 p-2.5 text-sm font-medium transition hover:bg-blue-50 hover:text-blue-700"
+                                                    className="rounded-xl border-b border-slate-50 p-2.5 text-sm font-medium transition hover:bg-blue-50 hover:text-blue-700"
                                                 >
-                                                    <span className="truncate pr-2">{u.name}</span>
-                                                    <ExternalLink
-                                                        size={14}
-                                                        className="shrink-0 text-blue-400"
-                                                    />
+                                                    {u.name}
                                                 </a>
                                             ))}
                                         </div>
@@ -124,65 +252,372 @@ export default function Edit({ mustVerifyEmail, status }) {
                         <div className="flex items-center gap-3">
                             <button
                                 type="button"
-                                onClick={() => router.post(`/language/${isArabic ? 'fr' : 'ar'}`)}
-                                className="hidden md:flex items-center gap-2 rounded-full border border-slate-300 px-4 py-2 text-xs font-bold text-slate-700 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white"
+                                onClick={() =>
+                                    router.post(`/language/${isArabic ? 'fr' : 'ar'}`)
+                                }
+                                className="hidden items-center gap-2 rounded-full border border-slate-300 px-4 py-2 text-xs font-bold text-slate-700 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white md:flex"
                             >
                                 <Globe size={16} />
                                 {isArabic ? t.french : t.arabic}
                             </button>
 
-                            <div className="hidden lg:flex items-center rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-600">
-                                {user?.name || 'Utilisateur'}
-                            </div>
+                            {auth?.user && (
+                                <>
+                                    <div className="relative" ref={menuRef}>
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setProfileMenuOpen((prev) => !prev)
+                                            }
+                                            className="hidden items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-600 lg:flex"
+                                        >
+                                            {auth.user.name}
+                                            <ChevronDown size={16} />
+                                        </button>
 
-                            <Link
-                                href="/dashboard"
-                                className="rounded-xl bg-slate-100 px-5 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-200"
-                            >
-                                {t.dashboard}
-                            </Link>
+                                        {profileMenuOpen && (
+                                            <div className="absolute right-0 mt-3 w-56 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
+                                                <Link
+                                                    href="/profile"
+                                                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                                                >
+                                                    <User size={18} />
+                                                    {t.profile}
+                                                </Link>
 
-                            <Link
-                                href="/"
-                                className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700"
-                            >
-                                {t.backHome}
-                            </Link>
+                                                <Link
+                                                    href="/logout"
+                                                    method="post"
+                                                    as="button"
+                                                    className="flex w-full items-center gap-3 px-4 py-3 text-sm font-medium text-red-600 transition hover:bg-red-50"
+                                                >
+                                                    <LogOut size={18} />
+                                                    {t.logout}
+                                                </Link>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <Link
+                                        href="/dashboard"
+                                        className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700"
+                                    >
+                                        Dashboard DEE
+                                    </Link>
+                                </>
+                            )}
                         </div>
                     </div>
                 </header>
 
-                <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-                    <div className="rounded-[2rem] bg-gradient-to-r from-[#13255c] to-[#223983] p-8 text-white shadow-xl shadow-blue-950/10">
-                        <p className="text-sm font-bold uppercase tracking-[0.24em] text-blue-200">
-                            {t.profile}
-                        </p>
-                        <h1 className="mt-3 text-3xl font-black">{t.profileTitle}</h1>
-                        <p className="mt-3 max-w-2xl text-sm leading-7 text-blue-100">
-                            {t.profileDesc}
-                        </p>
-                    </div>
-                </section>
+                <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+                    {/* HERO */}
+                    <section className="overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#2636c9] via-[#2673e8] to-[#0ea5c6] p-8 text-white shadow-2xl shadow-blue-900/20 md:p-10">
+                        <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+                            <div>
+                                <p className="text-sm font-black uppercase tracking-[0.32em] text-blue-100">
+                                    {t.pageBadge}
+                                </p>
 
-                <section className="mx-auto max-w-5xl px-4 pb-16 sm:px-6 lg:px-8">
-                    <div className="space-y-6">
-                        <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
-                            <UpdateProfileInformationForm
-                                mustVerifyEmail={mustVerifyEmail}
-                                status={status}
-                            />
-                        </div>
+                                <h1 className="mt-5 text-4xl font-black tracking-[-0.04em] sm:text-5xl">
+                                    {t.pageTitle}
+                                </h1>
 
-                        <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
-                            <UpdatePasswordForm />
-                        </div>
+                                <p className="mt-5 max-w-3xl text-sm font-medium leading-8 text-blue-50/90">
+                                    {t.pageDesc}
+                                </p>
+                            </div>
 
-                        <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
-                            <DeleteUserForm />
+                            <div className="grid gap-4 lg:grid-cols-3">
+                                <ProfileStat
+                                    icon={UserCircle2}
+                                    label={t.account}
+                                    value={auth?.user?.name || '—'}
+                                />
+
+                                <ProfileStat
+                                    icon={Mail}
+                                    label={t.email}
+                                    value={auth?.user?.email || '—'}
+                                />
+
+                                <ProfileStat
+                                    icon={ShieldCheck}
+                                    label={t.role}
+                                    value={t.admin}
+                                />
+                            </div>
                         </div>
-                    </div>
-                </section>
+                    </section>
+
+                    {/* CARDS */}
+                    <section className="mt-8 grid gap-8">
+                        {/* INFORMATIONS */}
+                        <FormCard
+                            icon={UserCircle2}
+                            color="blue"
+                            badge={t.personalInfo}
+                            title={t.personalInfo}
+                            desc={t.personalDesc}
+                        >
+                            <form onSubmit={submitProfile} className="space-y-6">
+                                <div>
+                                    <Label>{t.name}</Label>
+                                    <Input
+                                        value={profileForm.data.name}
+                                        onChange={(e) =>
+                                            profileForm.setData('name', e.target.value)
+                                        }
+                                        type="text"
+                                    />
+                                    <Error message={profileForm.errors.name} />
+                                </div>
+
+                                <div>
+                                    <Label>{t.email}</Label>
+                                    <Input
+                                        value={profileForm.data.email}
+                                        onChange={(e) =>
+                                            profileForm.setData('email', e.target.value)
+                                        }
+                                        type="email"
+                                    />
+                                    <Error message={profileForm.errors.email} />
+                                </div>
+
+                                {mustVerifyEmail &&
+                                    auth?.user?.email_verified_at === null && (
+                                        <div className="rounded-2xl bg-yellow-50 p-4 text-sm text-yellow-700">
+                                            Votre adresse email n’est pas encore vérifiée.
+                                        </div>
+                                    )}
+
+                                {status && (
+                                    <div className="rounded-2xl bg-emerald-50 p-4 text-sm font-semibold text-emerald-700">
+                                        {status}
+                                    </div>
+                                )}
+
+                                <button
+                                    type="submit"
+                                    disabled={profileForm.processing}
+                                    className="inline-flex items-center gap-2 rounded-2xl bg-blue-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-blue-700 disabled:opacity-50"
+                                >
+                                    <Save size={18} />
+                                    {t.save}
+                                </button>
+                            </form>
+                        </FormCard>
+
+                        {/* PASSWORD */}
+                        <FormCard
+                            icon={LockKeyhole}
+                            color="emerald"
+                            badge={t.security}
+                            title={t.passwordInfo}
+                            desc={t.passwordDesc}
+                        >
+                            <form onSubmit={submitPassword} className="space-y-6">
+                                <div>
+                                    <Label>{t.currentPassword}</Label>
+                                    <Input
+                                        value={passwordForm.data.current_password}
+                                        onChange={(e) =>
+                                            passwordForm.setData(
+                                                'current_password',
+                                                e.target.value
+                                            )
+                                        }
+                                        type="password"
+                                    />
+                                    <Error message={passwordForm.errors.current_password} />
+                                </div>
+
+                                <div>
+                                    <Label>{t.newPassword}</Label>
+                                    <Input
+                                        value={passwordForm.data.password}
+                                        onChange={(e) =>
+                                            passwordForm.setData('password', e.target.value)
+                                        }
+                                        type="password"
+                                    />
+                                    <Error message={passwordForm.errors.password} />
+                                </div>
+
+                                <div>
+                                    <Label>{t.confirmPassword}</Label>
+                                    <Input
+                                        value={passwordForm.data.password_confirmation}
+                                        onChange={(e) =>
+                                            passwordForm.setData(
+                                                'password_confirmation',
+                                                e.target.value
+                                            )
+                                        }
+                                        type="password"
+                                    />
+                                    <Error
+                                        message={
+                                            passwordForm.errors.password_confirmation
+                                        }
+                                    />
+                                </div>
+
+                                {passwordForm.recentlySuccessful && (
+                                    <div className="rounded-2xl bg-emerald-50 p-4 text-sm font-semibold text-emerald-700">
+                                        {t.updated}
+                                    </div>
+                                )}
+
+                                <button
+                                    type="submit"
+                                    disabled={passwordForm.processing}
+                                    className="inline-flex items-center gap-2 rounded-2xl bg-emerald-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-emerald-700 disabled:opacity-50"
+                                >
+                                    <LockKeyhole size={18} />
+                                    {t.save}
+                                </button>
+                            </form>
+                        </FormCard>
+
+                        {/* DELETE */}
+                        <FormCard
+                            icon={Trash2}
+                            color="red"
+                            badge={t.danger}
+                            title={t.deleteInfo}
+                            desc={t.deleteDesc}
+                        >
+                            <form onSubmit={submitDelete} className="space-y-6">
+                                <div>
+                                    <Label>{t.deletePassword}</Label>
+                                    <Input
+                                        value={deleteForm.data.password}
+                                        onChange={(e) =>
+                                            deleteForm.setData('password', e.target.value)
+                                        }
+                                        type="password"
+                                    />
+                                    <Error message={deleteForm.errors.password} />
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    disabled={deleteForm.processing}
+                                    className="inline-flex items-center gap-2 rounded-2xl bg-red-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-red-700 disabled:opacity-50"
+                                >
+                                    <Trash2 size={18} />
+                                    {t.deleteButton}
+                                </button>
+                            </form>
+                        </FormCard>
+                    </section>
+                </main>
             </div>
         </>
     );
 }
+
+function ProfileStat({ icon: Icon, label, value }) {
+    return (
+        <div className="min-w-0 rounded-[1.5rem] bg-white/12 p-5 backdrop-blur">
+            <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-white/15">
+                <Icon size={22} />
+            </div>
+
+            <p className="text-xs font-black uppercase tracking-[0.24em] text-blue-100">
+                {label}
+            </p>
+
+            <p className="mt-3 break-words text-sm font-black leading-6 text-white">
+                {value}
+            </p>
+        </div>
+    );
+}
+
+function FormCard({ icon: Icon, color, badge, title, desc, children }) {
+    const colors = {
+        blue: {
+            iconBg: 'bg-blue-50',
+            iconText: 'text-blue-600',
+            badge: 'text-blue-600',
+            border: 'border-slate-200',
+            bottomBorder: 'border-slate-100',
+        },
+        emerald: {
+            iconBg: 'bg-emerald-50',
+            iconText: 'text-emerald-600',
+            badge: 'text-emerald-600',
+            border: 'border-slate-200',
+            bottomBorder: 'border-slate-100',
+        },
+        red: {
+            iconBg: 'bg-red-50',
+            iconText: 'text-red-600',
+            badge: 'text-red-600',
+            border: 'border-red-200',
+            bottomBorder: 'border-red-100',
+        },
+    };
+
+    const c = colors[color];
+
+    return (
+        <div
+            className={`overflow-hidden rounded-[2rem] border ${c.border} bg-white shadow-sm`}
+        >
+            <div
+                className={`flex flex-col gap-4 border-b ${c.bottomBorder} px-7 py-6 md:flex-row md:items-center md:justify-between`}
+            >
+                <div className="flex items-center gap-4">
+                    <div
+                        className={`flex h-14 w-14 items-center justify-center rounded-2xl ${c.iconBg} ${c.iconText}`}
+                    >
+                        <Icon size={26} />
+                    </div>
+
+                    <div>
+                        <p
+                            className={`text-xs font-black uppercase tracking-[0.28em] ${c.badge}`}
+                        >
+                            {badge}
+                        </p>
+
+                        <h2 className="mt-1 text-2xl font-black text-blue-950">
+                            {title}
+                        </h2>
+
+                        <p className="mt-1 text-sm text-slate-500">{desc}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div className="p-7">{children}</div>
+        </div>
+    );
+}
+
+function Label({ children }) {
+    return (
+        <label className="mb-2 block text-sm font-bold text-slate-700">
+            {children}
+        </label>
+    );
+}
+
+function Input(props) {
+    return (
+        <input
+            {...props}
+            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+        />
+    );
+}
+
+function Error({ message }) {
+    if (!message) return null;
+
+    return <p className="mt-2 text-sm font-semibold text-red-600">{message}</p>;
+}   
