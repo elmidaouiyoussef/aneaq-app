@@ -25,6 +25,12 @@ Route::get('/', function () {
     return Inertia::render('Welcome');
 })->name('home');
 
+/*
+|--------------------------------------------------------------------------
+| Changement de langue
+|--------------------------------------------------------------------------
+*/
+
 Route::post('/language/{locale}', function (string $locale) {
     if (in_array($locale, ['fr', 'ar'], true)) {
         session(['locale' => $locale]);
@@ -35,7 +41,10 @@ Route::post('/language/{locale}', function (string $locale) {
 
 /*
 |--------------------------------------------------------------------------
-| Confirmation expert par email
+| Confirmation expert depuis email
+|--------------------------------------------------------------------------
+| Cette route reste publique parce que l'expert confirme depuis le lien reçu
+| dans son email.
 |--------------------------------------------------------------------------
 */
 
@@ -44,14 +53,15 @@ Route::get('/experts/invitation/{token}/confirm', [ExpertInvitationController::c
 
 /*
 |--------------------------------------------------------------------------
-| Routes authentifiées
+| Routes protégées par authentification
 |--------------------------------------------------------------------------
 */
 
 Route::middleware(['auth'])->group(function () {
+
     /*
     |--------------------------------------------------------------------------
-    | Dashboard
+    | Dashboard DEE
     |--------------------------------------------------------------------------
     */
 
@@ -60,7 +70,7 @@ Route::middleware(['auth'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Profil
+    | Profil utilisateur
     |--------------------------------------------------------------------------
     */
 
@@ -75,166 +85,183 @@ Route::middleware(['auth'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Établissements
+    | Gestion des établissements
     |--------------------------------------------------------------------------
     */
 
-    Route::get('/etablissements', [EtablissementController::class, 'index'])
-        ->name('etablissements.index');
+    Route::prefix('etablissements')->name('etablissements.')->group(function () {
+        Route::get('/', [EtablissementController::class, 'index'])
+            ->name('index');
 
-    Route::get('/etablissements/create', [EtablissementController::class, 'create'])
-        ->name('etablissements.create');
+        Route::get('/create', [EtablissementController::class, 'create'])
+            ->name('create');
 
-    Route::post('/etablissements', [EtablissementController::class, 'store'])
-        ->name('etablissements.store');
+        Route::post('/', [EtablissementController::class, 'store'])
+            ->name('store');
 
-    Route::get('/etablissements/{etablissement}', [EtablissementController::class, 'show'])
-        ->name('etablissements.show');
+        Route::get('/{etablissement}', [EtablissementController::class, 'show'])
+            ->name('show');
 
-    Route::get('/etablissements/{etablissement}/edit', [EtablissementController::class, 'edit'])
-        ->name('etablissements.edit');
+        Route::get('/{etablissement}/edit', [EtablissementController::class, 'edit'])
+            ->name('edit');
 
-    Route::patch('/etablissements/{etablissement}', [EtablissementController::class, 'update'])
-        ->name('etablissements.update');
+        Route::patch('/{etablissement}', [EtablissementController::class, 'update'])
+            ->name('update');
 
-    Route::delete('/etablissements/{etablissement}', [EtablissementController::class, 'destroy'])
-        ->name('etablissements.destroy');
+        Route::delete('/{etablissement}', [EtablissementController::class, 'destroy'])
+            ->name('destroy');
+    });
 
     /*
     |--------------------------------------------------------------------------
-    | Experts
+    | Gestion des experts
     |--------------------------------------------------------------------------
     */
 
-    Route::get('/experts', [ExpertController::class, 'index'])
-        ->name('experts.index');
+    Route::prefix('experts')->name('experts.')->group(function () {
+        Route::get('/', [ExpertController::class, 'index'])
+            ->name('index');
 
-    Route::get('/experts/create', [ExpertController::class, 'create'])
-        ->name('experts.create');
+        Route::get('/create', [ExpertController::class, 'create'])
+            ->name('create');
 
-    Route::post('/experts', [ExpertController::class, 'store'])
-        ->name('experts.store');
+        Route::post('/', [ExpertController::class, 'store'])
+            ->name('store');
 
-    Route::get('/experts/{expert}', [ExpertController::class, 'show'])
-        ->name('experts.show');
+        Route::get('/{expert}', [ExpertController::class, 'show'])
+            ->name('show');
 
-    Route::get('/experts/{expert}/edit', [ExpertController::class, 'edit'])
-        ->name('experts.edit');
+        Route::get('/{expert}/edit', [ExpertController::class, 'edit'])
+            ->name('edit');
 
-    Route::patch('/experts/{expert}', [ExpertController::class, 'update'])
-        ->name('experts.update');
+        Route::patch('/{expert}', [ExpertController::class, 'update'])
+            ->name('update');
 
-    Route::delete('/experts/{expert}', [ExpertController::class, 'destroy'])
-        ->name('experts.destroy');
+        Route::delete('/{expert}', [ExpertController::class, 'destroy'])
+            ->name('destroy');
+    });
 
     /*
     |--------------------------------------------------------------------------
-    | Vagues / Campagnes
+    | Gestion des vagues / campagnes d'évaluation
     |--------------------------------------------------------------------------
     */
 
-    Route::get('/campagnes', [CampagneEvaluationController::class, 'index'])
-        ->name('campagnes.index');
+    Route::prefix('campagnes')->name('campagnes.')->group(function () {
+        Route::get('/', [CampagneEvaluationController::class, 'index'])
+            ->name('index');
 
-    Route::get('/campagnes/create', [CampagneEvaluationController::class, 'create'])
-        ->name('campagnes.create');
+        Route::get('/create', [CampagneEvaluationController::class, 'create'])
+            ->name('create');
 
-    Route::post('/campagnes', [CampagneEvaluationController::class, 'store'])
-        ->name('campagnes.store');
+        Route::post('/', [CampagneEvaluationController::class, 'store'])
+            ->name('store');
 
-    Route::get('/campagnes/{campagneEvaluation}', [CampagneEvaluationController::class, 'show'])
-        ->name('campagnes.show');
+        Route::get('/{campagneEvaluation}', [CampagneEvaluationController::class, 'show'])
+            ->name('show');
 
-    Route::patch('/campagnes/{campagneEvaluation}', [CampagneEvaluationController::class, 'update'])
-        ->name('campagnes.update');
+        Route::patch('/{campagneEvaluation}', [CampagneEvaluationController::class, 'update'])
+            ->name('update');
 
-    Route::delete('/campagnes/{campagneEvaluation}', [CampagneEvaluationController::class, 'destroy'])
-        ->name('campagnes.destroy');
+        Route::delete('/{campagneEvaluation}', [CampagneEvaluationController::class, 'destroy'])
+            ->name('destroy');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Ancienne route de gestion des établissements
+        |--------------------------------------------------------------------------
+        | Maintenant la sélection des établissements se fait dans une popup
+        | directement depuis la page détail de la vague.
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get('/{campagneEvaluation}/etablissements', function (CampagneEvaluation $campagneEvaluation) {
+            return redirect()->route('campagnes.show', $campagneEvaluation);
+        })->name('etablissements');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Établissements rattachés à une vague
+        |--------------------------------------------------------------------------
+        */
+
+        Route::post('/{campagneEvaluation}/etablissements/attach', [CampagneEtablissementController::class, 'attach'])
+            ->name('etablissements.attach');
+
+        Route::post('/{campagneEvaluation}/etablissements/{campagneEtablissement}/confirm', [CampagneEtablissementController::class, 'confirm'])
+            ->name('etablissements.confirm');
+
+        Route::delete('/{campagneEvaluation}/etablissements/{campagneEtablissement}/refuse', [CampagneEtablissementController::class, 'refuse'])
+            ->name('etablissements.refuse');
+    });
 
     /*
     |--------------------------------------------------------------------------
-    | Ancienne page gérer établissements
-    |--------------------------------------------------------------------------
-    | Maintenant on utilise une popup dans la page show.
+    | Gestion des dossiers
     |--------------------------------------------------------------------------
     */
 
-    Route::get('/campagnes/{campagneEvaluation}/etablissements', function (CampagneEvaluation $campagneEvaluation) {
-        return redirect()->route('campagnes.show', $campagneEvaluation);
-    })->name('campagnes.etablissements');
+    Route::prefix('dossiers')->name('dossiers.')->group(function () {
+        Route::get('/', [DossierController::class, 'index'])
+            ->name('index');
+
+        Route::get('/{dossier}', [DossierController::class, 'show'])
+            ->name('show');
+
+        Route::patch('/{dossier}', [DossierController::class, 'update'])
+            ->name('update');
+
+        Route::delete('/{dossier}', [DossierController::class, 'destroy'])
+            ->name('destroy');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Documents du dossier
+        |--------------------------------------------------------------------------
+        */
+
+        Route::post('/{dossier}/documents', [DossierDocumentController::class, 'store'])
+            ->name('documents.store');
+
+        Route::delete('/{dossier}/documents/{document}', [DossierDocumentController::class, 'destroy'])
+            ->whereNumber('document')
+            ->name('documents.destroy');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Experts affectés au dossier
+        |--------------------------------------------------------------------------
+        */
+
+        Route::post('/{dossier}/experts', [DossierExpertController::class, 'store'])
+            ->name('experts.store');
+
+        Route::post('/{dossier}/experts/{dossierExpert}/confirm', [DossierExpertController::class, 'confirm'])
+            ->name('experts.confirm');
+
+        Route::delete('/{dossier}/experts/{dossierExpert}/refuse', [DossierExpertController::class, 'refuse'])
+            ->name('experts.refuse');
+
+        Route::delete('/{dossier}/experts/{dossierExpert}', [DossierExpertController::class, 'destroy'])
+            ->name('experts.destroy');
+    });
 
     /*
     |--------------------------------------------------------------------------
-    | Établissements dans la vague
+    | Workflow / visites
     |--------------------------------------------------------------------------
     */
 
-    Route::post('/campagnes/{campagneEvaluation}/etablissements/attach', [CampagneEtablissementController::class, 'attach'])
-        ->name('campagnes.etablissements.attach');
-
-    Route::post('/campagnes/{campagneEvaluation}/etablissements/{campagneEtablissement}/confirm', [CampagneEtablissementController::class, 'confirm'])
-        ->name('campagnes.etablissements.confirm');
-
-    Route::delete('/campagnes/{campagneEvaluation}/etablissements/{campagneEtablissement}/refuse', [CampagneEtablissementController::class, 'refuse'])
-        ->name('campagnes.etablissements.refuse');
-
-    /*
-    |--------------------------------------------------------------------------
-    | Dossiers
-    |--------------------------------------------------------------------------
-    */
-
-    Route::get('/dossiers', [DossierController::class, 'index'])
-        ->name('dossiers.index');
-
-    Route::get('/dossiers/{dossier}', [DossierController::class, 'show'])
-        ->name('dossiers.show');
-
-    Route::patch('/dossiers/{dossier}', [DossierController::class, 'update'])
-        ->name('dossiers.update');
-
-    Route::delete('/dossiers/{dossier}', [DossierController::class, 'destroy'])
-        ->name('dossiers.destroy');
-
-    /*
-    |--------------------------------------------------------------------------
-    | Documents des dossiers
-    |--------------------------------------------------------------------------
-    */
-
-    Route::post('/dossiers/{dossier}/documents', [DossierDocumentController::class, 'store'])
-        ->name('dossiers.documents.store');
-
-    Route::delete('/dossiers/{dossier}/documents/{document}', [DossierDocumentController::class, 'destroy'])
-        ->whereNumber('document')
-        ->name('dossiers.documents.destroy');
-
-    /*
-    |--------------------------------------------------------------------------
-    | Experts affectés aux dossiers
-    |--------------------------------------------------------------------------
-    */
-
-    Route::post('/dossiers/{dossier}/experts', [DossierExpertController::class, 'store'])
-        ->name('dossiers.experts.store');
-
-    Route::post('/dossiers/{dossier}/experts/{dossierExpert}/confirm', [DossierExpertController::class, 'confirm'])
-        ->name('dossiers.experts.confirm');
-
-    Route::delete('/dossiers/{dossier}/experts/{dossierExpert}/refuse', [DossierExpertController::class, 'refuse'])
-        ->name('dossiers.experts.refuse');
-
-    Route::delete('/dossiers/{dossier}/experts/{dossierExpert}', [DossierExpertController::class, 'destroy'])
-        ->name('dossiers.experts.destroy');
-
-    /*
-    |--------------------------------------------------------------------------
-    | Workflow visites
-    |--------------------------------------------------------------------------
-    */
-
-    Route::get('/workflow/visites', [WorkflowController::class, 'visites'])
-        ->name('workflow.visites');
+    Route::prefix('workflow')->name('workflow.')->group(function () {
+        Route::get('/visites', [WorkflowController::class, 'visites'])
+            ->name('visites');
+    });
 });
+
+/*
+|--------------------------------------------------------------------------
+| Routes Auth Breeze / Laravel
+|--------------------------------------------------------------------------
+*/
 
 require __DIR__.'/auth.php';
