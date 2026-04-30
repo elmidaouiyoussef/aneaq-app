@@ -157,6 +157,17 @@ function Show({ dossier, experts = [], dossierExperts = [], documents = [] }) {
 
     const etablissement = dossier.etablissement || {};
 
+    const dateVisiteBrute =
+        dossier?.date_visite_value ||
+        dossier?.date_visite ||
+        dossier?.date_visite_planifiee ||
+        dossier?.visite?.date_visite ||
+        '';
+
+    const hasDateVisite = isValidDateVisite(dateVisiteBrute);
+
+    const dateVisiteAffichee = hasDateVisite ? dateVisiteBrute : '—';
+
     return (
         <>
             <Head title={dossier.nom || dossier.reference || 'Dossier'} />
@@ -167,6 +178,7 @@ function Show({ dossier, experts = [], dossierExperts = [], documents = [] }) {
                         <p className="text-sm font-black uppercase tracking-[0.25em] text-blue-600">
                             Détail du dossier
                         </p>
+
                         <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-900">
                             {dossier.reference || 'Dossier'}
                         </h1>
@@ -225,7 +237,7 @@ function Show({ dossier, experts = [], dossierExperts = [], documents = [] }) {
                                 <HeroInfo label="Référence" value={dossier.reference} />
                                 <HeroInfo label="Campagne" value={dossier.campagne || dossier.campagne_reference} />
                                 <HeroInfo label="Statut" value={formatDossierStatus(dossier.statut)} />
-                                <HeroInfo label="Date de visite" value={dossier.date_visite || 'Non définie'} />
+                                <HeroInfo label="Date de visite" value={dateVisiteAffichee} />
                             </div>
                         </div>
 
@@ -278,8 +290,8 @@ function Show({ dossier, experts = [], dossierExperts = [], documents = [] }) {
                     <StatCard
                         icon={CalendarDays}
                         label="Visite"
-                        value={dossier.date_visite ? 1 : 0}
-                        description="Date planifiée"
+                        value={hasDateVisite ? 1 : 0}
+                        description={hasDateVisite ? 'Date planifiée' : 'Non planifiée'}
                         accent="bg-orange-500"
                     />
 
@@ -332,6 +344,7 @@ function Show({ dossier, experts = [], dossierExperts = [], documents = [] }) {
                                         <h3 className="text-2xl font-black text-slate-900">
                                             Pilotage du dossier
                                         </h3>
+
                                         <p className="mt-1 text-sm font-medium text-slate-500">
                                             Le statut se modifie automatiquement selon les documents déposés.
                                         </p>
@@ -342,6 +355,7 @@ function Show({ dossier, experts = [], dossierExperts = [], documents = [] }) {
                                     <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">
                                         Statut automatique
                                     </p>
+
                                     <p className="mt-2 text-lg font-black text-slate-900">
                                         {formatDossierStatus(dossier.statut)}
                                     </p>
@@ -413,6 +427,7 @@ function Show({ dossier, experts = [], dossierExperts = [], documents = [] }) {
                                         <h3 className="text-2xl font-black text-slate-900">
                                             Date de visite
                                         </h3>
+
                                         <p className="mt-1 text-sm font-medium text-slate-500">
                                             Définis ou modifie la date de visite du dossier.
                                         </p>
@@ -464,6 +479,7 @@ function Show({ dossier, experts = [], dossierExperts = [], documents = [] }) {
                                         <h3 className="text-2xl font-black text-slate-900">
                                             Affectation des experts
                                         </h3>
+
                                         <p className="mt-1 text-sm font-medium text-slate-500">
                                             Choisis un expert, donne son rôle, puis confirme ou refuse son affectation.
                                         </p>
@@ -482,6 +498,7 @@ function Show({ dossier, experts = [], dossierExperts = [], documents = [] }) {
                                             size={18}
                                             className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
                                         />
+
                                         <input
                                             type="text"
                                             value={expertSearch}
@@ -529,7 +546,10 @@ function Show({ dossier, experts = [], dossierExperts = [], documents = [] }) {
                                             ))
                                         ) : (
                                             <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center">
-                                                <p className="font-black text-slate-900">Aucun expert trouvé</p>
+                                                <p className="font-black text-slate-900">
+                                                    Aucun expert trouvé
+                                                </p>
+
                                                 <p className="mt-1 text-sm text-slate-500">
                                                     Aucun résultat ne correspond à votre recherche.
                                                 </p>
@@ -549,6 +569,7 @@ function Show({ dossier, experts = [], dossierExperts = [], documents = [] }) {
                                                 <p className="font-black text-slate-900">
                                                     {expertFullName(selectedExpert)}
                                                 </p>
+
                                                 <p className="mt-1 text-sm font-medium text-slate-500">
                                                     {selectedExpert.email || 'Email non renseigné'}
                                                 </p>
@@ -593,6 +614,7 @@ function Show({ dossier, experts = [], dossierExperts = [], documents = [] }) {
                                     ) : (
                                         <div className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-white p-8 text-center">
                                             <Users className="mx-auto text-slate-300" size={32} />
+
                                             <p className="mt-3 text-sm font-semibold text-slate-500">
                                                 Choisis un expert dans la liste.
                                             </p>
@@ -622,6 +644,7 @@ function Show({ dossier, experts = [], dossierExperts = [], documents = [] }) {
                                             <p className="font-black text-slate-900">
                                                 Aucun expert affecté
                                             </p>
+
                                             <p className="mt-1 text-sm text-slate-500">
                                                 Ajoute un expert pour commencer l’affectation.
                                             </p>
@@ -641,6 +664,7 @@ function Show({ dossier, experts = [], dossierExperts = [], documents = [] }) {
                                     <h3 className="text-2xl font-black text-slate-900">
                                         Documents déposés
                                     </h3>
+
                                     <p className="mt-1 text-sm font-medium text-slate-500">
                                         Le statut du dossier évolue automatiquement selon les documents ajoutés.
                                     </p>
@@ -658,6 +682,7 @@ function Show({ dossier, experts = [], dossierExperts = [], documents = [] }) {
                                                 <p className="font-black text-slate-900">
                                                     {document.nom || document.name || document.filename || 'Document'}
                                                 </p>
+
                                                 <p className="mt-1 text-sm font-medium text-slate-500">
                                                     {document.type || document.document_type || 'Type non défini'}
                                                 </p>
@@ -690,6 +715,7 @@ function Show({ dossier, experts = [], dossierExperts = [], documents = [] }) {
                                 ) : (
                                     <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center">
                                         <FileText className="mx-auto text-slate-300" size={34} />
+
                                         <p className="mt-3 font-black text-slate-900">
                                             Aucun document n’a encore été déposé.
                                         </p>
@@ -710,6 +736,7 @@ function Show({ dossier, experts = [], dossierExperts = [], documents = [] }) {
                                     <h3 className="text-2xl font-black text-slate-900">
                                         Établissement
                                     </h3>
+
                                     <p className="mt-1 text-sm font-medium text-slate-500">
                                         Informations générales de l’établissement concerné.
                                     </p>
@@ -736,6 +763,7 @@ function Show({ dossier, experts = [], dossierExperts = [], documents = [] }) {
                                     <h3 className="text-2xl font-black text-slate-900">
                                         Documents attendus
                                     </h3>
+
                                     <p className="mt-1 text-sm font-medium text-slate-500">
                                         Suivi rapide des pièces du dossier.
                                     </p>
@@ -789,6 +817,7 @@ function HeroInfo({ label, value }) {
             <p className="text-xs font-bold uppercase tracking-[0.25em] text-blue-100">
                 {label}
             </p>
+
             <p className="mt-2 text-sm font-black text-white">
                 {value || '—'}
             </p>
@@ -826,6 +855,7 @@ function InfoBox({ label, value }) {
             <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">
                 {label}
             </p>
+
             <p className="mt-3 break-words text-sm font-bold leading-7 text-slate-800">
                 {value || '—'}
             </p>
@@ -937,7 +967,10 @@ function ExpectedDocument({ label, documents, keywords }) {
     return (
         <div className="flex items-center justify-between rounded-2xl bg-slate-50 p-4">
             <div>
-                <p className="font-black text-slate-900">{label}</p>
+                <p className="font-black text-slate-900">
+                    {label}
+                </p>
+
                 <p className="mt-1 text-xs font-semibold text-slate-500">
                     {exists ? 'Document déposé' : 'En attente'}
                 </p>
@@ -958,7 +991,10 @@ function WorkflowItem({ text }) {
     return (
         <div className="flex items-center gap-3 rounded-2xl bg-white/10 p-3">
             <BadgeCheck size={18} className="text-blue-200" />
-            <span className="text-sm font-semibold text-blue-50">{text}</span>
+
+            <span className="text-sm font-semibold text-blue-50">
+                {text}
+            </span>
         </div>
     );
 }
@@ -1019,6 +1055,31 @@ function formatShortStatus(status) {
     }
 
     return value;
+}
+
+function isValidDateVisite(value) {
+    if (value === null || value === undefined) {
+        return false;
+    }
+
+    const text = String(value).trim();
+
+    if (!text) {
+        return false;
+    }
+
+    const invalidValues = [
+        '—',
+        '-',
+        'null',
+        'undefined',
+        'non définie',
+        'non definie',
+        'non planifiée',
+        'non planifiee',
+    ];
+
+    return !invalidValues.includes(text.toLowerCase());
 }
 
 Show.layout = (page) => <DashboardShell>{page}</DashboardShell>;
