@@ -288,6 +288,8 @@ Route::middleware(['auth', 'dee.admin'])
                 ->name('visites');
         });
     });
+    Route::get('/etablissements/{etablissement}', [\App\Http\Controllers\DEE\EtablissementController::class, 'show'])
+    ->name('dee.etablissements.show');
 
 /*
 |--------------------------------------------------------------------------

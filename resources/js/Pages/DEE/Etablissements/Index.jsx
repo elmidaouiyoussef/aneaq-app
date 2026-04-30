@@ -1,8 +1,9 @@
-import { Head, router, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import DashboardShell from '@/Layouts/DashboardShell';
 import {
     Building2,
     FolderKanban,
+    History,
     Mail,
     MapPin,
     Pencil,
@@ -40,7 +41,9 @@ function EtablissementsIndex({ etablissements = [] }) {
     const filteredEtablissements = useMemo(() => {
         const query = search.trim().toLowerCase();
 
-        if (!query) return etablissements;
+        if (!query) {
+            return etablissements;
+        }
 
         return etablissements.filter((item) =>
             [
@@ -59,17 +62,18 @@ function EtablissementsIndex({ etablissements = [] }) {
     }, [search, etablissements]);
 
     const totalCampagnes = useMemo(
-        () => etablissements.reduce((sum, item) => sum + (item.campagnes_count || 0), 0),
+        () => etablissements.reduce((sum, item) => sum + Number(item.campagnes_count || 0), 0),
         [etablissements]
     );
 
     const totalDossiers = useMemo(
-        () => etablissements.reduce((sum, item) => sum + (item.dossiers_count || 0), 0),
+        () => etablissements.reduce((sum, item) => sum + Number(item.dossiers_count || 0), 0),
         [etablissements]
     );
 
     const openEditModal = (item) => {
         setEditingItem(item);
+
         setData({
             etablissement: item.etablissement || '',
             etablissement_2: item.etablissement_2 || item.display_name || '',
@@ -77,6 +81,7 @@ function EtablissementsIndex({ etablissements = [] }) {
             universite: item.universite || '',
             email: item.email || '',
         });
+
         clearErrors();
     };
 
@@ -89,9 +94,11 @@ function EtablissementsIndex({ etablissements = [] }) {
     const submitEdit = (e) => {
         e.preventDefault();
 
-        if (!editingItem) return;
+        if (!editingItem) {
+            return;
+        }
 
-        patch(`/etablissements/${editingItem.id}`, {
+        patch(`/dee/etablissements/${editingItem.id}`, {
             preserveScroll: true,
             onSuccess: () => {
                 closeEditModal();
@@ -100,9 +107,11 @@ function EtablissementsIndex({ etablissements = [] }) {
     };
 
     const submitDelete = () => {
-        if (!deleteItem) return;
+        if (!deleteItem) {
+            return;
+        }
 
-        router.delete(`/etablissements/${deleteItem.id}`, {
+        router.delete(`/dee/etablissements/${deleteItem.id}`, {
             preserveScroll: true,
             onSuccess: () => {
                 setDeleteItem(null);
@@ -136,11 +145,13 @@ function EtablissementsIndex({ etablissements = [] }) {
                             label="Établissements"
                             value={etablissements.length}
                         />
+
                         <StatCard
                             icon={FolderKanban}
                             label="Campagnes liées"
                             value={totalCampagnes}
                         />
+
                         <StatCard
                             icon={School}
                             label="Dossiers liés"
@@ -155,6 +166,7 @@ function EtablissementsIndex({ etablissements = [] }) {
                             <p className="text-sm font-bold uppercase tracking-[0.22em] text-blue-600">
                                 Liste principale
                             </p>
+
                             <h2 className="mt-2 text-2xl font-black text-slate-900">
                                 Tous les établissements
                             </h2>
@@ -165,6 +177,7 @@ function EtablissementsIndex({ etablissements = [] }) {
                                 size={18}
                                 className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
                             />
+
                             <input
                                 type="text"
                                 value={search}
@@ -189,22 +202,34 @@ function EtablissementsIndex({ etablissements = [] }) {
 
                     <div className="mt-6 overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white">
                         <div className="overflow-x-auto">
-                            <table className="min-w-[1280px] w-full table-auto">
+                            <table className="w-full min-w-[1380px] table-auto">
                                 <thead className="bg-slate-50">
                                     <tr className="text-left text-sm font-bold text-slate-500">
-                                        <th className="sticky left-0 z-20 min-w-[320px] bg-slate-50 px-6 py-4 shadow-[8px_0_12px_-10px_rgba(15,23,42,0.15)]">
+                                        <th className="sticky left-0 z-20 min-w-[340px] bg-slate-50 px-6 py-4 shadow-[8px_0_12px_-10px_rgba(15,23,42,0.15)]">
                                             Établissement
                                         </th>
-                                        <th className="min-w-[140px] px-6 py-4">Ville</th>
-                                        <th className="min-w-[260px] px-6 py-4">Université</th>
-                                        <th className="min-w-[180px] px-6 py-4">Email</th>
+
+                                        <th className="min-w-[140px] px-6 py-4">
+                                            Ville
+                                        </th>
+
+                                        <th className="min-w-[260px] px-6 py-4">
+                                            Université
+                                        </th>
+
+                                        <th className="min-w-[200px] px-6 py-4">
+                                            Email
+                                        </th>
+
                                         <th className="min-w-[110px] px-6 py-4 text-center">
                                             Campagnes
                                         </th>
+
                                         <th className="min-w-[100px] px-6 py-4 text-center">
                                             Dossiers
                                         </th>
-                                        <th className="sticky right-0 z-20 min-w-[250px] bg-slate-50 px-6 py-4 text-right shadow-[-8px_0_12px_-10px_rgba(15,23,42,0.15)]">
+
+                                        <th className="sticky right-0 z-20 min-w-[390px] bg-slate-50 px-6 py-4 text-right shadow-[-8px_0_12px_-10px_rgba(15,23,42,0.15)]">
                                             Actions
                                         </th>
                                     </tr>
@@ -218,9 +243,14 @@ function EtablissementsIndex({ etablissements = [] }) {
                                                 className="align-top transition hover:bg-slate-50/70"
                                             >
                                                 <td className="sticky left-0 z-10 bg-white px-6 py-5 shadow-[8px_0_12px_-10px_rgba(15,23,42,0.10)]">
-                                                    <div className="font-bold leading-7 text-slate-900">
+                                                    <Link
+                                                        href={`/dee/etablissements/${item.id}`}
+                                                        className="block font-bold leading-7 text-slate-900 transition hover:text-blue-600"
+                                                        title="Voir l’historique de cet établissement"
+                                                    >
                                                         {item.display_name || '—'}
-                                                    </div>
+                                                    </Link>
+
                                                     <div className="mt-1 text-sm text-slate-500">
                                                         {item.etablissement || '—'}
                                                     </div>
@@ -232,6 +262,7 @@ function EtablissementsIndex({ etablissements = [] }) {
                                                             size={15}
                                                             className="shrink-0 text-blue-500"
                                                         />
+
                                                         {item.ville || '—'}
                                                     </span>
                                                 </td>
@@ -246,20 +277,29 @@ function EtablissementsIndex({ etablissements = [] }) {
                                                             size={15}
                                                             className="shrink-0 text-blue-500"
                                                         />
+
                                                         <span>{item.email || '—'}</span>
                                                     </span>
                                                 </td>
 
                                                 <td className="px-6 py-5 text-center text-sm font-bold text-slate-700">
-                                                    {item.campagnes_count}
+                                                    {item.campagnes_count ?? 0}
                                                 </td>
 
                                                 <td className="px-6 py-5 text-center text-sm font-bold text-slate-700">
-                                                    {item.dossiers_count}
+                                                    {item.dossiers_count ?? 0}
                                                 </td>
 
                                                 <td className="sticky right-0 z-10 bg-white px-6 py-5 shadow-[-8px_0_12px_-10px_rgba(15,23,42,0.10)]">
                                                     <div className="flex items-center justify-end gap-3 whitespace-nowrap">
+                                                        <Link
+                                                            href={`/dee/etablissements/${item.id}`}
+                                                            className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-blue-700"
+                                                        >
+                                                            <History size={16} />
+                                                            Historique
+                                                        </Link>
+
                                                         <button
                                                             type="button"
                                                             onClick={() => openEditModal(item)}
@@ -297,8 +337,7 @@ function EtablissementsIndex({ etablissements = [] }) {
                     </div>
 
                     <p className="mt-4 text-xs font-medium text-slate-400">
-                        Astuce : la première colonne et la colonne actions restent visibles pendant
-                        le défilement horizontal.
+                        Astuce : clique sur le nom ou sur le bouton Historique pour voir toutes les activités de l’établissement.
                     </p>
                 </div>
 
@@ -310,6 +349,7 @@ function EtablissementsIndex({ etablissements = [] }) {
                                     <p className="text-sm font-bold uppercase tracking-[0.22em] text-blue-600">
                                         Modification
                                     </p>
+
                                     <h3 className="mt-2 text-2xl font-black text-slate-900">
                                         Modifier l’établissement
                                     </h3>
@@ -393,6 +433,7 @@ function EtablissementsIndex({ etablissements = [] }) {
                                     <p className="text-sm font-bold uppercase tracking-[0.22em] text-red-600">
                                         Suppression
                                     </p>
+
                                     <h3 className="mt-2 text-2xl font-black text-slate-900">
                                         Confirmer la suppression
                                     </h3>
@@ -451,10 +492,14 @@ function StatCard({ icon: Icon, label, value }) {
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15">
                 <Icon size={24} />
             </div>
+
             <p className="mt-4 text-xs font-bold uppercase tracking-[0.24em] text-blue-100">
                 {label}
             </p>
-            <p className="mt-2 text-4xl font-black">{value}</p>
+
+            <p className="mt-2 text-4xl font-black">
+                {value}
+            </p>
         </div>
     );
 }
@@ -462,14 +507,22 @@ function StatCard({ icon: Icon, label, value }) {
 function InputField({ label, value, onChange, error, type = 'text' }) {
     return (
         <div>
-            <label className="mb-2 block text-sm font-bold text-slate-700">{label}</label>
+            <label className="mb-2 block text-sm font-bold text-slate-700">
+                {label}
+            </label>
+
             <input
                 type={type}
                 value={value || ''}
                 onChange={(e) => onChange(e.target.value)}
                 className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white"
             />
-            {error && <p className="mt-2 text-sm font-semibold text-red-600">{error}</p>}
+
+            {error && (
+                <p className="mt-2 text-sm font-semibold text-red-600">
+                    {error}
+                </p>
+            )}
         </div>
     );
 }

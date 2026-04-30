@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\DEE;
 
 use App\Http\Controllers\Controller;
-
 use App\Mail\ExpertAccountCreatedMail;
 use App\Models\Dossier;
 use App\Models\DossierExpert;
@@ -144,10 +143,24 @@ class DossierExpertController extends Controller
         return back()->with('success', 'Expert refusé et supprimé du dossier.');
     }
 
-    public function destroy(Dossier $dossier, DossierExpert $dossierExpert)
+    public function destroy(Request $request, Dossier $dossier, DossierExpert $dossierExpert)
     {
         if ((int) $dossierExpert->dossier_id !== (int) $dossier->id) {
             abort(404);
+        }
+
+        $request->validate([
+            'delete_password' => ['required', 'string'],
+        ], [
+            'delete_password.required' => 'Le mot de passe de suppression est obligatoire.',
+        ]);
+
+        $expectedPassword = config('app.dee_delete_password', env('DEE_DELETE_PASSWORD'));
+
+        if (!$expectedPassword || !hash_equals((string) $expectedPassword, (string) $request->input('delete_password'))) {
+            return back()->withErrors([
+                'delete_password' => 'Mot de passe incorrect.',
+            ]);
         }
 
         $dossierExpert->delete();
