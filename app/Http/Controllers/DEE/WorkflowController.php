@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\DEE;
+
+use App\Http\Controllers\Controller;
 
 use App\Models\Dossier;
 use App\Models\DossierExpert;
@@ -117,7 +119,7 @@ class WorkflowController extends Controller
                         'email' => $this->read($etablissement, ['email', 'mail'], '—'),
                     ],
 
-                    'url' => route('dossiers.show', $dossier->id),
+                    'url' => route('dee.dossiers.show', $dossier->id),
                 ];
             })
             ->values();

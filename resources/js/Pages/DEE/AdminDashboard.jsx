@@ -1,4 +1,5 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
+import DeeHeader from '@/Components/DEE/DeeHeader';
 import {
     ArrowRight,
     Building2,
@@ -22,11 +23,13 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 export default function AdminDashboard({ stats: dashboardStats = {} }) {
     const { props } = usePage();
 
-    const auth = props.auth || {};
-    const locale = props.locale || 'fr';
+    const auth = props?.auth || {};
+    const user = auth?.user || null;
+
+    const locale = props?.locale || 'fr';
     const isArabic = locale === 'ar';
 
-    const counts = dashboardStats || props.stats || {};
+    const counts = dashboardStats || props?.stats || {};
 
     const [profileMenuOpen, setProfileMenuOpen] = useState(false);
     const menuRef = useRef(null);
@@ -48,7 +51,7 @@ export default function AdminDashboard({ stats: dashboardStats = {} }) {
             about: 'À propos',
             universities: 'Universités',
             guides: 'Guides',
-            dashboard: 'Dashboard',
+            dashboard: 'Dashboard DEE',
             backHome: "Retour à l'accueil",
             arabic: 'العربية',
             french: 'Français',
@@ -89,20 +92,19 @@ export default function AdminDashboard({ stats: dashboardStats = {} }) {
             why4: 'Interface professionnelle cohérente',
             ctaTitle: 'Prêt à commencer une nouvelle campagne d’évaluation ?',
             ctaDesc:
-                'Accède directement à la création d’une vague ou ouvre le dashboard administrateur pour continuer ton travail.',
+                'Accédez directement à la création d’une vague ou ouvrez le dashboard administrateur pour continuer votre travail.',
             quickLinks: 'Liens rapides',
-            adminDashboard: 'Dashboard administrateur',
+            adminDashboard: 'Dashboard DEE',
             contactUs: 'Contactez-nous',
             rights: '© 2026 ANEAQ - Division de l’Evaluation des Etablissements. Tous droits réservés.',
-            login: 'Connexion',
-            register: 'Inscription',
+            adminSpace: 'Espace administrateur DEE',
         };
 
         const ar = {
             about: 'حول المنصة',
             universities: 'الجامعات',
             guides: 'الأدلة',
-            dashboard: 'لوحة القيادة',
+            dashboard: 'لوحة قيادة DEE',
             backHome: 'العودة إلى الرئيسية',
             arabic: 'العربية',
             french: 'Français',
@@ -113,7 +115,6 @@ export default function AdminDashboard({ stats: dashboardStats = {} }) {
             heroDesc:
                 'قم بتدبير حملات التقييم، المؤسسات، الخبراء، الملفات والزيارات من خلال واجهة واضحة ومهنية ومتكاملة.',
             createWave: 'إنشاء حملة تقييم',
-            accessDashboard: 'الدخول إلى لوحة القيادة',
             discoverModules: 'اكتشف الوحدات',
             statsTitle: 'أرقام أساسية',
             statsSubtitle: 'نظرة سريعة ومبسطة على أهم وحدات التسيير.',
@@ -146,11 +147,10 @@ export default function AdminDashboard({ stats: dashboardStats = {} }) {
             ctaDesc:
                 'يمكنك الولوج مباشرة إلى إنشاء حملة جديدة أو فتح لوحة القيادة الإدارية لمتابعة عملك.',
             quickLinks: 'روابط سريعة',
-            adminDashboard: 'لوحة الإدارة',
+            adminDashboard: 'لوحة إدارة DEE',
             contactUs: 'اتصل بنا',
             rights: '© 2026 الوكالة الوطنية - مديرية تقييم المؤسسات. جميع الحقوق محفوظة.',
-            login: 'تسجيل الدخول',
-            register: 'إنشاء حساب',
+            adminSpace: 'فضاء إدارة DEE',
         };
 
         return isArabic ? ar : fr;
@@ -170,31 +170,31 @@ export default function AdminDashboard({ stats: dashboardStats = {} }) {
             label: t.etablissements,
             value: counts.etablissements ?? 0,
             icon: Building2,
-            route: '/etablissements',
+            route: '/dee/etablissements',
         },
         {
             label: t.experts,
             value: counts.experts ?? 0,
             icon: Users,
-            route: '/experts',
+            route: '/dee/experts',
         },
         {
             label: t.vagues,
             value: counts.vagues ?? counts.campagnes ?? 0,
             icon: Layers3,
-            route: '/campagnes',
+            route: '/dee/campagnes',
         },
         {
             label: t.dossiers,
             value: counts.dossiers ?? 0,
             icon: ClipboardCheck,
-            route: '/dossiers',
+            route: '/dee/dossiers',
         },
         {
             label: t.visites,
             value: counts.visites ?? 0,
             icon: CalendarDays,
-            route: '/workflow/visites',
+            route: '/dee/workflow/visites',
         },
     ];
 
@@ -203,37 +203,37 @@ export default function AdminDashboard({ stats: dashboardStats = {} }) {
             title: t.etablissements,
             desc: 'Gestion des établissements, consultation, recherche et rattachement aux vagues.',
             icon: Building2,
-            route: '/etablissements',
+            route: '/dee/etablissements',
         },
         {
             title: t.experts,
             desc: 'Gestion des experts, recherche, filtrage, affectation et suivi.',
             icon: Users,
-            route: '/experts',
+            route: '/dee/experts',
         },
         {
             title: t.vagues,
             desc: 'Création, pilotage et suivi des vagues d’évaluation.',
             icon: Layers3,
-            route: '/campagnes',
+            route: '/dee/campagnes',
         },
         {
             title: t.dossiers,
             desc: 'Suivi des dossiers, statuts, documents et expertises.',
             icon: ClipboardCheck,
-            route: '/dossiers',
+            route: '/dee/dossiers',
         },
         {
             title: t.visites,
             desc: 'Planification et suivi des dates de visite programmées.',
             icon: CalendarDays,
-            route: '/workflow/visites',
+            route: '/dee/workflow/visites',
         },
         {
             title: t.dashboard,
             desc: 'Tableau de bord global pour piloter l’ensemble de la plateforme.',
             icon: ShieldCheck,
-            route: '/dashboard',
+            route: '/dee/dashboard',
         },
     ];
 
@@ -252,143 +252,10 @@ export default function AdminDashboard({ stats: dashboardStats = {} }) {
 
     return (
         <>
-            <Head title="Dashboard - ANEAQ" />
+            <Head title="Dashboard DEE - ANEAQ" />
 
             <div dir={isArabic ? 'rtl' : 'ltr'} className="min-h-screen bg-[#f6f8fc] text-slate-800">
-                <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur-md">
-                    <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-                        <div className="flex items-center gap-6">
-                            <Link href="/" className="flex items-center gap-4">
-                                <img
-                                    src="/images/logo-ministere.png"
-                                    alt="Ministère"
-                                    className="h-11 rounded-xl bg-white p-1.5 shadow-sm"
-                                    onError={(e) => {
-                                        e.currentTarget.style.display = 'none';
-                                    }}
-                                />
-
-                                <div className="h-9 w-px bg-slate-200" />
-
-                                <img
-                                    src="/images/logo-aneaq.png"
-                                    alt="ANEAQ"
-                                    className="h-11 rounded-xl bg-white p-1.5 shadow-sm"
-                                    onError={(e) => {
-                                        e.currentTarget.style.display = 'none';
-                                    }}
-                                />
-                            </Link>
-
-                            <div className="hidden items-center gap-8 text-sm font-semibold text-slate-700 xl:flex">
-                                <Link href="/" className="transition hover:text-blue-600">
-                                    {t.about}
-                                </Link>
-
-                                <div className="group relative">
-                                    <button
-                                        type="button"
-                                        className="flex items-center gap-1 transition hover:text-blue-600"
-                                    >
-                                        {t.universities}
-                                        <ChevronDown size={16} />
-                                    </button>
-
-                                    <div className="absolute left-0 top-full hidden w-[620px] rounded-2xl border border-slate-100 bg-white p-5 shadow-2xl group-hover:block">
-                                        <div className="grid grid-cols-2 gap-x-6 gap-y-2">
-                                            {universities.map((u, i) => (
-                                                <a
-                                                    key={i}
-                                                    href={u.link}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="rounded-xl border-b border-slate-50 p-2.5 text-sm font-medium transition hover:bg-blue-50 hover:text-blue-700"
-                                                >
-                                                    {u.name}
-                                                </a>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <Link href="/" className="transition hover:text-blue-600">
-                                    {t.guides}
-                                </Link>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                            <button
-                                type="button"
-                                onClick={() => router.post(`/language/${isArabic ? 'fr' : 'ar'}`)}
-                                className="hidden items-center gap-2 rounded-full border border-slate-300 px-4 py-2 text-xs font-bold text-slate-700 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white md:flex"
-                            >
-                                <Globe size={16} />
-                                {isArabic ? t.french : t.arabic}
-                            </button>
-
-                            {auth?.user ? (
-                                <>
-                                    <div className="relative" ref={menuRef}>
-                                        <button
-                                            type="button"
-                                            onClick={() => setProfileMenuOpen((prev) => !prev)}
-                                            className="hidden items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-600 lg:flex"
-                                        >
-                                            {auth.user.name}
-                                            <ChevronDown size={16} />
-                                        </button>
-
-                                        {profileMenuOpen && (
-                                            <div className="absolute right-0 mt-3 w-56 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
-                                                <Link
-                                                    href="/profile"
-                                                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-                                                >
-                                                    <User size={18} />
-                                                    {t.profile}
-                                                </Link>
-
-                                                <Link
-                                                    href="/logout"
-                                                    method="post"
-                                                    as="button"
-                                                    className="flex w-full items-center gap-3 px-4 py-3 text-sm font-medium text-red-600 transition hover:bg-red-50"
-                                                >
-                                                    <LogOut size={18} />
-                                                    {t.logout}
-                                                </Link>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <Link
-                                        href="/dashboard"
-                                        className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700"
-                                    >
-                                        {t.dashboard}
-                                    </Link>
-                                </>
-                            ) : (
-                                <>
-                                    <Link
-                                        href="/login"
-                                        className="rounded-xl border border-slate-300 px-5 py-2.5 text-sm font-bold text-slate-700 transition hover:border-blue-600 hover:text-blue-600"
-                                    >
-                                        {t.login}
-                                    </Link>
-
-                                    <Link
-                                        href="/register"
-                                        className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700"
-                                    >
-                                        {t.register}
-                                    </Link>
-                                </>
-                            )}
-                        </div>
-                    </div>
-                </header>
+            <DeeHeader buttonMode="home" />
 
                 <section className="relative overflow-hidden">
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(37,99,235,0.12),_transparent_35%),radial-gradient(circle_at_bottom_right,_rgba(14,165,233,0.12),_transparent_35%)]" />
@@ -410,7 +277,7 @@ export default function AdminDashboard({ stats: dashboardStats = {} }) {
                             <div className="mt-8">
                                 <button
                                     type="button"
-                                    onClick={() => goTo('/campagnes/create')}
+                                    onClick={() => goTo('/dee/campagnes/create')}
                                     className="inline-flex min-w-[340px] items-center justify-center rounded-2xl bg-[#223270] px-12 py-5 text-base font-black text-white shadow-xl shadow-blue-950/20 transition hover:-translate-y-0.5 hover:bg-[#1b285a] active:scale-95"
                                 >
                                     {t.createWave}
@@ -628,14 +495,14 @@ export default function AdminDashboard({ stats: dashboardStats = {} }) {
                             </p>
 
                             <div className="mt-10 flex justify-center">
-    <button
-        type="button"
-        onClick={() => goTo('/campagnes/create')}
-        className="inline-flex h-16 min-w-[360px] items-center justify-center rounded-2xl bg-[#223270] px-12 text-base font-black text-white shadow-xl shadow-blue-950/20 transition hover:-translate-y-0.5 hover:bg-[#1b285a] active:scale-95"
-    >
-        {t.createWave}
-    </button>
-</div>
+                                <button
+                                    type="button"
+                                    onClick={() => goTo('/dee/campagnes/create')}
+                                    className="inline-flex h-16 min-w-[360px] items-center justify-center rounded-2xl bg-[#223270] px-12 text-base font-black text-white shadow-xl shadow-blue-950/20 transition hover:-translate-y-0.5 hover:bg-[#1b285a] active:scale-95"
+                                >
+                                    {t.createWave}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -670,7 +537,7 @@ export default function AdminDashboard({ stats: dashboardStats = {} }) {
                                     <li>
                                         <button
                                             type="button"
-                                            onClick={() => goTo('/dashboard')}
+                                            onClick={() => goTo('/dee/dashboard')}
                                             className="transition hover:text-white"
                                         >
                                             {t.adminDashboard}
@@ -680,7 +547,7 @@ export default function AdminDashboard({ stats: dashboardStats = {} }) {
                                     <li>
                                         <button
                                             type="button"
-                                            onClick={() => goTo('/etablissements')}
+                                            onClick={() => goTo('/dee/etablissements')}
                                             className="transition hover:text-white"
                                         >
                                             {t.etablissements}
@@ -690,7 +557,7 @@ export default function AdminDashboard({ stats: dashboardStats = {} }) {
                                     <li>
                                         <button
                                             type="button"
-                                            onClick={() => goTo('/experts')}
+                                            onClick={() => goTo('/dee/experts')}
                                             className="transition hover:text-white"
                                         >
                                             {t.experts}
@@ -700,7 +567,7 @@ export default function AdminDashboard({ stats: dashboardStats = {} }) {
                                     <li>
                                         <button
                                             type="button"
-                                            onClick={() => goTo('/campagnes')}
+                                            onClick={() => goTo('/dee/campagnes')}
                                             className="transition hover:text-white"
                                         >
                                             {t.vagues}
@@ -710,7 +577,7 @@ export default function AdminDashboard({ stats: dashboardStats = {} }) {
                                     <li>
                                         <button
                                             type="button"
-                                            onClick={() => goTo('/dossiers')}
+                                            onClick={() => goTo('/dee/dossiers')}
                                             className="transition hover:text-white"
                                         >
                                             {t.dossiers}
@@ -720,7 +587,7 @@ export default function AdminDashboard({ stats: dashboardStats = {} }) {
                                     <li>
                                         <button
                                             type="button"
-                                            onClick={() => goTo('/workflow/visites')}
+                                            onClick={() => goTo('/dee/workflow/visites')}
                                             className="transition hover:text-white"
                                         >
                                             {t.visites}

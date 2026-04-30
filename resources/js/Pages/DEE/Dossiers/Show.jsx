@@ -49,7 +49,7 @@ function Show({ dossier, experts = [], dossierExperts = [], documents = [] }) {
     const submitUpdate = (e) => {
         e.preventDefault();
 
-        updateForm.patch(`/dossiers/${dossier.id}`, {
+        updateForm.patch(`/dee/dossiers/${dossier.id}`, {
             preserveScroll: true,
         });
     };
@@ -57,7 +57,7 @@ function Show({ dossier, experts = [], dossierExperts = [], documents = [] }) {
     const submitDate = (e) => {
         e.preventDefault();
 
-        dateForm.patch(`/dossiers/${dossier.id}`, {
+        dateForm.patch(`/dee/dossiers/${dossier.id}`, {
             preserveScroll: true,
         });
     };
@@ -70,7 +70,7 @@ function Show({ dossier, experts = [], dossierExperts = [], documents = [] }) {
     const submitExpert = (e) => {
         e.preventDefault();
 
-        expertForm.post(`/dossiers/${dossier.id}/experts`, {
+        expertForm.post(`/dee/dossiers/${dossier.id}/experts`, {
             preserveScroll: true,
             onSuccess: () => {
                 setSelectedExpert(null);
@@ -82,7 +82,7 @@ function Show({ dossier, experts = [], dossierExperts = [], documents = [] }) {
 
     const acceptExpert = (dossierExpertId) => {
         router.post(
-            `/dossiers/${dossier.id}/experts/${dossierExpertId}/confirm`,
+            `/dee/dossiers/${dossier.id}/experts/${dossierExpertId}/confirm`,
             {},
             {
                 preserveScroll: true,
@@ -95,7 +95,7 @@ function Show({ dossier, experts = [], dossierExperts = [], documents = [] }) {
             return;
         }
 
-        router.delete(`/dossiers/${dossier.id}/experts/${dossierExpertId}/refuse`, {
+        router.delete(`/dee/dossiers/${dossier.id}/experts/${dossierExpertId}/refuse`, {
             preserveScroll: true,
         });
     };
@@ -105,7 +105,7 @@ function Show({ dossier, experts = [], dossierExperts = [], documents = [] }) {
             return;
         }
 
-        router.delete(`/dossiers/${dossier.id}/experts/${dossierExpertId}`, {
+        router.delete(`/dee/dossiers/${dossier.id}/experts/${dossierExpertId}`, {
             preserveScroll: true,
         });
     };
@@ -115,7 +115,7 @@ function Show({ dossier, experts = [], dossierExperts = [], documents = [] }) {
             return;
         }
 
-        router.delete(`/dossiers/${dossier.id}/documents/${documentId}`, {
+        router.delete(`/dee/dossiers/${dossier.id}/documents/${documentId}`, {
             preserveScroll: true,
         });
     };
@@ -174,7 +174,7 @@ function Show({ dossier, experts = [], dossierExperts = [], documents = [] }) {
 
                     <div className="flex flex-wrap gap-3">
                         <Link
-                            href="/dossiers"
+                            href="/dee/dossiers"
                             className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 shadow-sm transition hover:bg-slate-50"
                         >
                             <ArrowLeft size={17} />
@@ -183,7 +183,7 @@ function Show({ dossier, experts = [], dossierExperts = [], documents = [] }) {
 
                         {dossier.campagne_id && (
                             <Link
-                                href={`/campagnes/${dossier.campagne_id}`}
+                                href={`/dee/campagnes/${dossier.campagne_id}`}
                                 className="inline-flex items-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-700"
                             >
                                 <FolderKanban size={17} />

@@ -171,7 +171,7 @@ export default function GuestLayout({ children }) {
                                     </Link>
                                 </li>
                                 <li>
-                                    <Link href="/dossiers" className="transition hover:text-white">
+                                    <Link href="/dee/dossiers" className="transition hover:text-white">
                                         Dossiers
                                     </Link>
                                 </li>

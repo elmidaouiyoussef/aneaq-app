@@ -3,13 +3,13 @@ import DashboardShell from '@/Layouts/DashboardShell';
 import {
     ArrowLeft,
     Building2,
-    CalendarDays,
     CheckCircle2,
     ClipboardList,
     Edit3,
     Eye,
-    FileText,
+    FileUp,
     FolderKanban,
+    LockKeyhole,
     Mail,
     MapPin,
     Plus,
@@ -17,8 +17,10 @@ import {
     Search,
     Send,
     Settings2,
+    ShieldCheck,
     Trash2,
     X,
+    XCircle,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
@@ -60,11 +62,14 @@ function CampagneShow({
     const confirmForm = useForm({
         email: '',
         lettre_dee: null,
+        message_lettre: '',
     });
 
     const refuseForm = useForm({});
 
-    const deleteForm = useForm({});
+    const deleteForm = useForm({
+        delete_password: '',
+    });
 
     const filteredAvailableEtablissements = useMemo(() => {
         const value = search.toLowerCase().trim();
@@ -76,11 +81,16 @@ function CampagneShow({
         return availableEtablissements.filter((item) => {
             return [
                 item.nom,
+                item.etablissement,
+                item.etablissement_2,
                 item.type,
+                item.vocation,
+                item.domaine_connaissances,
                 item.ville,
                 item.universite,
                 item.email,
             ]
+                .filter(Boolean)
                 .join(' ')
                 .toLowerCase()
                 .includes(value);
@@ -90,7 +100,7 @@ function CampagneShow({
     const submitInfo = (e) => {
         e.preventDefault();
 
-        infoForm.patch(`/campagnes/${campagne.id}`, {
+        infoForm.patch(`/dee/campagnes/${campagne.id}`, {
             preserveScroll: true,
             onSuccess: () => {
                 setIsEditingInfo(false);
@@ -101,7 +111,7 @@ function CampagneShow({
     const submitStatus = (e) => {
         e.preventDefault();
 
-        statusForm.patch(`/campagnes/${campagne.id}`, {
+        statusForm.patch(`/dee/campagnes/${campagne.id}`, {
             preserveScroll: true,
         });
     };
@@ -110,7 +120,7 @@ function CampagneShow({
         attachForm.setData('etablissement_id', etablissementId);
 
         router.post(
-            `/campagnes/${campagne.id}/etablissements/attach`,
+            `/dee/campagnes/${campagne.id}/etablissements/attach`,
             {
                 etablissement_id: etablissementId,
             },
@@ -128,16 +138,19 @@ function CampagneShow({
     const openConfirmModal = (item) => {
         setConfirmTarget(item);
 
-        confirmForm.setData('email', item.email || item.etablissement?.email || '');
-        confirmForm.setData('lettre_dee', null);
-        confirmForm.clearErrors();
+        confirmForm.setData({
+            email: item.email || item.etablissement?.email || '',
+            lettre_dee: null,
+            message_lettre: '',
+        });
 
+        confirmForm.clearErrors();
         setConfirmModalOpen(true);
     };
 
     const closeConfirmModal = () => {
-        setConfirmModalOpen(false);
         setConfirmTarget(null);
+        setConfirmModalOpen(false);
         confirmForm.reset();
         confirmForm.clearErrors();
     };
@@ -150,7 +163,7 @@ function CampagneShow({
         }
 
         confirmForm.post(
-            `/campagnes/${campagne.id}/etablissements/${confirmTarget.id}/confirm`,
+            `/dee/campagnes/${campagne.id}/etablissements/${confirmTarget.id}/confirm`,
             {
                 preserveScroll: true,
                 forceFormData: true,
@@ -177,7 +190,7 @@ function CampagneShow({
         }
 
         refuseForm.delete(
-            `/campagnes/${campagne.id}/etablissements/${refuseTarget.id}/refuse`,
+            `/dee/campagnes/${campagne.id}/etablissements/${refuseTarget.id}/refuse`,
             {
                 preserveScroll: true,
                 onSuccess: () => {
@@ -187,11 +200,25 @@ function CampagneShow({
         );
     };
 
-    const submitDeleteCampagne = () => {
-        deleteForm.delete(`/campagnes/${campagne.id}`, {
+    const openDeleteModal = () => {
+        deleteForm.setData('delete_password', '');
+        deleteForm.clearErrors();
+        setDeleteModalOpen(true);
+    };
+
+    const closeDeleteModal = () => {
+        setDeleteModalOpen(false);
+        deleteForm.reset();
+        deleteForm.clearErrors();
+    };
+
+    const submitDeleteCampagne = (e) => {
+        e.preventDefault();
+
+        deleteForm.delete(`/dee/campagnes/${campagne.id}`, {
             preserveScroll: true,
             onSuccess: () => {
-                setDeleteModalOpen(false);
+                closeDeleteModal();
             },
         });
     };
@@ -232,7 +259,7 @@ function CampagneShow({
 
                         <button
                             type="button"
-                            onClick={() => setDeleteModalOpen(true)}
+                            onClick={openDeleteModal}
                             className="inline-flex items-center gap-2 rounded-2xl bg-red-600 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-red-700"
                         >
                             <Trash2 size={17} />
@@ -488,7 +515,7 @@ function CampagneShow({
                     </div>
                 </section>
 
-                <section className="mt-7 rounded-[2rem] border border-slate-200 bg-white shadow-sm">
+                <section className="mt-7 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
                     <div className="flex flex-col gap-4 border-b border-slate-100 p-7 lg:flex-row lg:items-center lg:justify-between">
                         <div>
                             <p className="text-sm font-bold uppercase tracking-[0.22em] text-blue-600">
@@ -500,7 +527,7 @@ function CampagneShow({
                             </h3>
 
                             <p className="mt-1 text-sm font-medium text-slate-500">
-                                Chaque établissement ajouté reste en attente jusqu’à confirmation DEE.
+                                Les établissements sont affichés sous forme de lignes compactes.
                             </p>
                         </div>
 
@@ -515,15 +542,30 @@ function CampagneShow({
                     </div>
 
                     {etablissements.length > 0 ? (
-                        <div className="grid gap-4 p-7 md:grid-cols-2 xl:grid-cols-3">
-                            {etablissements.map((item) => (
-                                <EtablissementCard
-                                    key={item.id}
-                                    item={item}
-                                    onAccept={() => openConfirmModal(item)}
-                                    onRefuse={() => openRefuseModal(item)}
-                                />
-                            ))}
+                        <div className="max-h-[560px] overflow-auto rounded-b-[2rem]">
+                            <table className="w-full min-w-[1100px] text-left">
+                                <thead className="sticky top-0 z-20">
+                                    <tr className="border-b border-slate-100 bg-slate-50 text-xs font-black uppercase tracking-[0.18em] text-slate-400 shadow-sm">
+                                        <th className="px-5 py-4">Établissement</th>
+                                        <th className="px-5 py-4">Université</th>
+                                        <th className="px-5 py-4">Ville</th>
+                                        <th className="px-5 py-4">Type</th>
+                                        <th className="px-5 py-4">Statut</th>
+                                        <th className="px-5 py-4 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    {etablissements.map((item) => (
+                                        <EtablissementRow
+                                            key={item.id}
+                                            item={item}
+                                            onAccept={() => openConfirmModal(item)}
+                                            onRefuse={() => openRefuseModal(item)}
+                                        />
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
                     ) : (
                         <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
@@ -584,19 +626,19 @@ function CampagneShow({
 
                                             <div>
                                                 <h4 className="font-black text-slate-900">
-                                                    {item.nom}
+                                                    {getAvailableName(item)}
                                                 </h4>
 
                                                 <div className="mt-2 flex flex-wrap gap-2">
-                                                    <Badge>{item.type}</Badge>
+                                                    <Badge>{getAvailableType(item)}</Badge>
                                                     <Badge>
                                                         <MapPin size={12} />
-                                                        {item.ville}
+                                                        {item.ville || '—'}
                                                     </Badge>
                                                 </div>
 
                                                 <p className="mt-2 text-sm font-semibold text-slate-500">
-                                                    {item.universite}
+                                                    {item.universite || '—'}
                                                 </p>
                                             </div>
                                         </div>
@@ -630,7 +672,7 @@ function CampagneShow({
                 </Modal>
             )}
 
-            {confirmModalOpen && (
+            {confirmModalOpen && confirmTarget && (
                 <Modal onClose={closeConfirmModal} title="Confirmer et créer le compte">
                     <form
                         onSubmit={submitConfirm}
@@ -643,11 +685,13 @@ function CampagneShow({
                             </p>
 
                             <p className="mt-3 text-base font-black text-slate-900">
-                                {confirmTarget?.etablissement?.nom || '—'}
+                                {getAttachedName(confirmTarget)}
                             </p>
 
                             <p className="mt-1 text-sm font-semibold text-slate-500">
-                                {confirmTarget?.etablissement?.universite || '—'}
+                                {confirmTarget?.etablissement?.universite ||
+                                    confirmTarget?.universite ||
+                                    'Université non renseignée'}
                             </p>
                         </div>
 
@@ -669,6 +713,7 @@ function CampagneShow({
                                         confirmForm.setData('email', e.target.value)
                                     }
                                     placeholder="email@exemple.com"
+                                    required
                                     className="h-14 w-full rounded-2xl border border-slate-200 bg-white pl-12 pr-4 text-sm font-bold text-slate-700 outline-none transition focus:border-blue-500"
                                 />
                             </div>
@@ -682,25 +727,61 @@ function CampagneShow({
 
                         <div>
                             <label className="mb-2 block text-sm font-black text-slate-700">
-                                Lettre DEE à envoyer
+                                Lettre DEE à stocker dans le dossier
                             </label>
 
-                            <input
-                                type="file"
-                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                                onChange={(e) =>
-                                    confirmForm.setData('lettre_dee', e.target.files[0])
-                                }
-                                className="block w-full rounded-2xl border border-slate-200 bg-white px-4 py-4 text-sm font-bold text-slate-700 outline-none transition file:mr-4 file:rounded-xl file:border-0 file:bg-blue-600 file:px-4 file:py-2 file:text-sm file:font-black file:text-white hover:file:bg-blue-700 focus:border-blue-500"
-                            />
+                            <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center transition hover:border-blue-400 hover:bg-blue-50">
+                                <FileUp size={28} className="text-blue-600" />
 
-                            <p className="mt-2 text-xs font-semibold text-slate-500">
-                                Formats acceptés : PDF, DOC, DOCX, JPG, PNG.
-                            </p>
+                                <span className="mt-2 text-sm font-black text-slate-700">
+                                    Cliquez pour choisir une lettre
+                                </span>
+
+                                <span className="mt-1 text-xs font-semibold text-slate-500">
+                                    Formats acceptés : PDF, DOC, DOCX, JPG, PNG.
+                                </span>
+
+                                <input
+                                    type="file"
+                                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                    onChange={(e) =>
+                                        confirmForm.setData('lettre_dee', e.target.files[0] || null)
+                                    }
+                                    className="hidden"
+                                />
+                            </label>
+
+                            {confirmForm.data.lettre_dee && (
+                                <p className="mt-2 rounded-xl bg-blue-50 px-3 py-2 text-xs font-black text-blue-700">
+                                    Fichier sélectionné : {confirmForm.data.lettre_dee.name}
+                                </p>
+                            )}
 
                             {confirmForm.errors.lettre_dee && (
                                 <p className="mt-2 text-sm font-semibold text-red-600">
                                     {confirmForm.errors.lettre_dee}
+                                </p>
+                            )}
+                        </div>
+
+                        <div>
+                            <label className="mb-2 block text-sm font-black text-slate-700">
+                                Message lettre DEE
+                            </label>
+
+                            <textarea
+                                rows="6"
+                                value={confirmForm.data.message_lettre}
+                                onChange={(e) =>
+                                    confirmForm.setData('message_lettre', e.target.value)
+                                }
+                                placeholder="Écrivez ici le message officiel qui sera envoyé dans l’email..."
+                                className="w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-4 text-sm font-bold text-slate-700 outline-none transition focus:border-blue-500"
+                            />
+
+                            {confirmForm.errors.message_lettre && (
+                                <p className="mt-2 text-sm font-semibold text-red-600">
+                                    {confirmForm.errors.message_lettre}
                                 </p>
                             )}
                         </div>
@@ -756,7 +837,7 @@ function CampagneShow({
                             </p>
 
                             <p className="mt-3 text-base font-black text-red-900">
-                                {refuseTarget?.etablissement?.nom || '—'}
+                                {getAttachedName(refuseTarget)}
                             </p>
                         </div>
 
@@ -784,39 +865,73 @@ function CampagneShow({
             )}
 
             {deleteModalOpen && (
-                <Modal onClose={() => setDeleteModalOpen(false)} title="Supprimer la vague">
-                    <div className="space-y-5">
+                <Modal onClose={closeDeleteModal} title="Supprimer la vague">
+                    <form onSubmit={submitDeleteCampagne} className="space-y-5">
                         <div className="rounded-2xl bg-red-50 p-5">
-                            <p className="text-sm font-bold leading-7 text-red-700">
-                                Cette action va supprimer la vague et ses rattachements.
-                                Confirmez-vous la suppression ?
-                            </p>
+                            <div className="flex items-start gap-3">
+                                <ShieldCheck size={24} className="mt-1 text-red-600" />
 
-                            <p className="mt-3 text-base font-black text-red-900">
-                                {campagne.reference}
-                            </p>
+                                <div>
+                                    <p className="text-sm font-bold leading-7 text-red-700">
+                                        Cette action va supprimer la vague et ses rattachements.
+                                        Pour confirmer, saisissez le mot de passe unique administrateur DEE.
+                                    </p>
+
+                                    <p className="mt-3 text-base font-black text-red-900">
+                                        {campagne.reference}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="mb-2 block text-sm font-black text-slate-700">
+                                Mot de passe DEE
+                            </label>
+
+                            <div className="relative">
+                                <LockKeyhole
+                                    size={18}
+                                    className="absolute left-4 top-1/2 -translate-y-1/2 text-red-500"
+                                />
+
+                                <input
+                                    type="password"
+                                    value={deleteForm.data.delete_password}
+                                    onChange={(e) =>
+                                        deleteForm.setData('delete_password', e.target.value)
+                                    }
+                                    placeholder="Mot de passe de confirmation"
+                                    className="h-14 w-full rounded-2xl border border-slate-200 bg-white pl-12 pr-4 text-sm font-bold text-slate-700 outline-none transition focus:border-red-500"
+                                />
+                            </div>
+
+                            {deleteForm.errors.delete_password && (
+                                <p className="mt-2 text-sm font-semibold text-red-600">
+                                    {deleteForm.errors.delete_password}
+                                </p>
+                            )}
                         </div>
 
                         <div className="flex justify-end gap-3">
                             <button
                                 type="button"
-                                onClick={() => setDeleteModalOpen(false)}
+                                onClick={closeDeleteModal}
                                 className="rounded-2xl border border-slate-200 bg-white px-6 py-3 text-sm font-black text-slate-700 transition hover:bg-slate-50"
                             >
                                 Annuler
                             </button>
 
                             <button
-                                type="button"
+                                type="submit"
                                 disabled={deleteForm.processing}
-                                onClick={submitDeleteCampagne}
                                 className="inline-flex items-center justify-center gap-2 rounded-2xl bg-red-600 px-6 py-3 text-sm font-black text-white transition hover:bg-red-700 disabled:opacity-60"
                             >
                                 <Trash2 size={18} />
                                 {deleteForm.processing ? 'Suppression...' : 'Supprimer définitivement'}
                             </button>
                         </div>
-                    </div>
+                    </form>
                 </Modal>
             )}
         </>
@@ -884,91 +999,94 @@ function InputBlock({ label, value, onChange, disabled = false, error = null }) 
     );
 }
 
-function EtablissementCard({ item, onAccept, onRefuse }) {
-    const status = item.statut || 'en_attente_confirmation_dee';
-    const isPending = status === 'en_attente_confirmation_dee';
-    const isAccessSent = status === 'acces_envoye';
+function EtablissementRow({ item, onAccept, onRefuse }) {
+    const status = item.statut || item.status || 'en_attente_confirmation_dee';
+    const isAccessSent = status === 'acces_envoye' || status === 'compte_etablissement_cree';
 
     return (
-        <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5">
-            <div className="flex items-start justify-between gap-4">
-                <div>
-                    <h4 className="text-base font-black text-slate-900">
-                        {item.etablissement?.nom || '—'}
-                    </h4>
+        <tr className="border-b border-slate-100 transition hover:bg-blue-50/40">
+            <td className="px-5 py-4">
+                <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+                        <Building2 size={19} />
+                    </div>
 
-                    <p className="mt-1 text-sm font-semibold text-slate-500">
-                        {item.etablissement?.universite || '—'}
-                    </p>
+                    <div>
+                        <p className="text-sm font-black text-slate-900">
+                            {getAttachedName(item)}
+                        </p>
+
+                        <p className="mt-1 text-xs font-semibold text-slate-400">
+                            ID rattachement : {item.id}
+                        </p>
+                    </div>
                 </div>
+            </td>
 
-                <button
-                    type="button"
-                    onClick={onRefuse}
-                    className="flex h-10 w-10 items-center justify-center rounded-2xl bg-red-50 text-red-600 transition hover:bg-red-100"
-                >
-                    <Trash2 size={17} />
-                </button>
-            </div>
+            <td className="px-5 py-4 text-sm font-bold text-slate-600">
+                {item.etablissement?.universite || item.universite || '—'}
+            </td>
 
-            <div className="mt-4 flex flex-wrap gap-2">
+            <td className="px-5 py-4">
                 <Badge>
                     <MapPin size={12} />
-                    {item.etablissement?.ville || '—'}
+                    {item.etablissement?.ville || item.ville || '—'}
                 </Badge>
+            </td>
 
+            <td className="px-5 py-4 text-sm font-bold text-slate-600">
+                {getAttachedType(item)}
+            </td>
+
+            <td className="px-5 py-4">
                 <StatusBadge value={status} />
-            </div>
+            </td>
 
-            <div className="mt-4">
-                <p className="mb-2 text-sm font-black text-slate-700">
-                    Email de l’établissement
-                </p>
+            <td className="px-5 py-4">
+                <div className="flex justify-end gap-2">
+                    {!isAccessSent && (
+                        <>
+                            <button
+                                type="button"
+                                title="Valider et créer le compte"
+                                onClick={onAccept}
+                                className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 transition hover:bg-emerald-600 hover:text-white"
+                            >
+                                <CheckCircle2 size={18} />
+                            </button>
 
-                <div className="flex h-12 items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700">
-                    <Mail size={16} className="text-blue-500" />
-                    {item.email || item.etablissement?.email || 'Non renseigné'}
-                </div>
-            </div>
+                            <button
+                                type="button"
+                                title="Refuser"
+                                onClick={onRefuse}
+                                className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-50 text-red-600 transition hover:bg-red-600 hover:text-white"
+                            >
+                                <XCircle size={18} />
+                            </button>
+                        </>
+                    )}
 
-            {isPending && (
-                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    {isAccessSent && item.dossier && (
+                        <Link
+                            href={`/dee/dossiers/${item.dossier.id}`}
+                            title="Voir le dossier"
+                            className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-700 transition hover:bg-blue-600 hover:text-white"
+                        >
+                            <Eye size={18} />
+                        </Link>
+                    )}
+
                     <button
                         type="button"
+                        title="Retirer de la vague"
                         onClick={onRefuse}
-                        className="inline-flex items-center justify-center gap-2 rounded-2xl bg-red-500 px-4 py-3 text-sm font-black text-white transition hover:bg-red-600"
+                        className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-500 transition hover:bg-slate-900 hover:text-white"
                     >
-                        <Trash2 size={16} />
-                        Refuser
-                    </button>
-
-                    <button
-                        type="button"
-                        onClick={onAccept}
-                        className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-black text-white transition hover:bg-emerald-700"
-                    >
-                        <Send size={16} />
-                        Accepter
+                        <Trash2 size={17} />
                     </button>
                 </div>
-            )}
-
-            {isAccessSent && item.dossier && (
-                <Link
-                    href={`/dossiers/${item.dossier.id}`}
-                    className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 px-4 py-3 text-sm font-black text-white transition hover:bg-blue-700"
-                >
-                    <Eye size={16} />
-                    Voir le dossier
-                </Link>
-            )}
-
-            {isAccessSent && !item.dossier && (
-                <div className="mt-4 rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-black text-emerald-700">
-                    Accès envoyé
-                </div>
-            )}
-        </div>
+            </td>
+        </tr>
     );
 }
 
@@ -976,6 +1094,7 @@ function StatusBadge({ value }) {
     const labels = {
         en_attente_confirmation_dee: 'En attente confirmation DEE',
         acces_envoye: 'Accès envoyé',
+        compte_etablissement_cree: 'Compte créé',
         selectionne: 'Sélectionné',
         refuse: 'Refusé',
     };
@@ -988,7 +1107,7 @@ function StatusBadge({ value }) {
         classes = 'bg-amber-100 text-amber-700';
     }
 
-    if (value === 'acces_envoye') {
+    if (value === 'acces_envoye' || value === 'compte_etablissement_cree') {
         classes = 'bg-emerald-100 text-emerald-700';
     }
 
@@ -1014,7 +1133,7 @@ function Badge({ children }) {
 function Modal({ title, children, onClose }) {
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 px-4 backdrop-blur-sm">
-            <div className="w-full max-w-2xl overflow-hidden rounded-[2rem] bg-white shadow-2xl">
+            <div className="max-h-[92vh] w-full max-w-2xl overflow-hidden rounded-[2rem] bg-white shadow-2xl">
                 <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
                     <h3 className="text-xl font-black text-slate-900">
                         {title}
@@ -1029,7 +1148,7 @@ function Modal({ title, children, onClose }) {
                     </button>
                 </div>
 
-                <div className="p-6">
+                <div className="max-h-[calc(92vh-82px)] overflow-y-auto p-6">
                     {children}
                 </div>
             </div>
@@ -1045,6 +1164,53 @@ function formatStatusLabel(value) {
     };
 
     return labels[value] || value || '—';
+}
+
+function getAttachedName(item) {
+    return (
+        item?.etablissement?.nom ||
+        item?.etablissement?.name ||
+        item?.etablissement?.etablissement ||
+        item?.etablissement?.etablissement_2 ||
+        item?.nom ||
+        item?.name ||
+        item?.etablissement_name ||
+        '—'
+    );
+}
+
+function getAttachedType(item) {
+    return (
+        item?.etablissement?.type ||
+        item?.etablissement?.vocation ||
+        item?.etablissement?.domaine_connaissances ||
+        item?.etablissement?.evaluation ||
+        item?.type ||
+        item?.vocation ||
+        item?.domaine_connaissances ||
+        '—'
+    );
+}
+
+function getAvailableName(item) {
+    return (
+        item?.nom ||
+        item?.name ||
+        item?.etablissement ||
+        item?.etablissement_2 ||
+        item?.acronyme ||
+        '—'
+    );
+}
+
+function getAvailableType(item) {
+    return (
+        item?.type ||
+        item?.vocation ||
+        item?.domaine_connaissances ||
+        item?.evaluation ||
+        '—'
+    );
 }
 
 CampagneShow.layout = (page) => <DashboardShell>{page}</DashboardShell>;

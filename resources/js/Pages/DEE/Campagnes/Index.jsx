@@ -1,365 +1,367 @@
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import DashboardShell from '@/Layouts/DashboardShell';
 import {
-    Building2,
     CalendarDays,
     Eye,
-    FolderKanban,
+    FileText,
     Layers3,
+    LockKeyhole,
     Plus,
-    Search,
+    ShieldCheck,
     Trash2,
     X,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
-function CampagnesIndex({ campagnes = [] }) {
-    const { props } = usePage();
-    const flash = props.flash || {};
+function Index({ campagnes = [] }) {
+    const [selectedCampagne, setSelectedCampagne] = useState(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-    const [search, setSearch] = useState('');
-    const [deleteItem, setDeleteItem] = useState(null);
+    const deleteForm = useForm({
+        delete_password: '',
+    });
 
-    const filteredCampagnes = useMemo(() => {
-        const query = search.trim().toLowerCase();
-
-        if (!query) return campagnes;
-
-        return campagnes.filter((item) =>
-            [
-                item.reference,
-                item.annee,
-                item.vocation,
-                item.statut,
-                item.created_by,
-                item.created_at,
-                item.observation,
-            ]
-                .filter(Boolean)
-                .join(' ')
-                .toLowerCase()
-                .includes(query)
-        );
-    }, [search, campagnes]);
-
-    const totalCampagnes = campagnes.length;
-
-    const totalEtablissements = useMemo(() => {
-        return campagnes.reduce(
-            (sum, item) => sum + (item.etablissements_count || 0),
-            0
-        );
+    const stats = useMemo(() => {
+        return {
+            total: campagnes.length,
+            etablissements: campagnes.reduce(
+                (total, item) => total + Number(item.etablissements_count ?? 0),
+                0
+            ),
+            dossiers: campagnes.reduce(
+                (total, item) => total + Number(item.dossiers_count ?? 0),
+                0
+            ),
+            actives: campagnes.filter((item) =>
+                String(item.statut ?? item.status ?? '')
+                    .toLowerCase()
+                    .includes('active')
+            ).length,
+        };
     }, [campagnes]);
 
-    const totalDossiers = useMemo(() => {
-        return campagnes.reduce(
-            (sum, item) => sum + (item.dossiers_count || 0),
-            0
-        );
-    }, [campagnes]);
+    const openDeleteModal = (campagne) => {
+        setSelectedCampagne(campagne);
+        deleteForm.setData('delete_password', '');
+        deleteForm.clearErrors();
+        setShowDeleteModal(true);
+    };
 
-    const totalActives = useMemo(() => {
-        return campagnes.filter((item) =>
-            (item.statut || '').toLowerCase().includes('active')
-        ).length;
-    }, [campagnes]);
+    const closeDeleteModal = () => {
+        setSelectedCampagne(null);
+        setShowDeleteModal(false);
+        deleteForm.reset();
+        deleteForm.clearErrors();
+    };
 
-    const submitDelete = () => {
-        if (!deleteItem) return;
+    const submitDelete = (e) => {
+        e.preventDefault();
 
-        router.delete(`/campagnes/${deleteItem.id}`, {
+        deleteForm.clearErrors();
+
+        if (!selectedCampagne) {
+            deleteForm.setError('delete_password', 'Aucune vague sélectionnée.');
+            return;
+        }
+
+        if (!deleteForm.data.delete_password.trim()) {
+            deleteForm.setError('delete_password', 'Le mot de passe est obligatoire.');
+            return;
+        }
+
+        deleteForm.delete(`/dee/campagnes/${selectedCampagne.id}`, {
             preserveScroll: true,
+            preserveState: true,
             onSuccess: () => {
-                setDeleteItem(null);
+                closeDeleteModal();
+            },
+            onError: (errors) => {
+                deleteForm.setError(
+                    'delete_password',
+                    errors.delete_password || 'Mot de passe incorrect.'
+                );
             },
         });
     };
 
     return (
         <>
-            <Head title="Vagues d’évaluation" />
+            <Head title="Gestion des vagues" />
 
-            <div className="mx-auto max-w-[98rem] px-4 py-10 sm:px-6 lg:px-8">
-                <div className="rounded-[2rem] bg-gradient-to-r from-[#243cbe] via-[#2f61e7] to-[#0ea5c6] px-8 py-10 text-white shadow-xl shadow-blue-900/10">
-                    <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-                        <div>
-                            <p className="text-sm font-bold uppercase tracking-[0.28em] text-blue-100">
-                                Vagues d’évaluation
-                            </p>
+            <div className="min-h-screen bg-[#f6f8fc] px-4 py-10 sm:px-6 lg:px-8">
+                <div className="mx-auto max-w-7xl">
+                    <section className="rounded-[2rem] bg-gradient-to-br from-[#2934c8] via-[#2563eb] to-[#0891b2] p-8 text-white shadow-xl shadow-blue-900/20">
+                        <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-start">
+                            <div>
+                                <p className="text-sm font-black uppercase tracking-[0.28em] text-blue-100">
+                                    Vagues d’évaluation
+                                </p>
 
-                            <h1 className="mt-3 text-4xl font-black tracking-tight">
-                                Gestion des vagues
-                            </h1>
+                                <h1 className="mt-4 text-4xl font-black">
+                                    Gestion des vagues
+                                </h1>
 
-                            <p className="mt-4 max-w-3xl text-sm leading-7 text-blue-50/90">
-                                Consulte, recherche, ouvre et supprime les vagues d’évaluation.
-                                Chaque vague permet de gérer les établissements sélectionnés et les
-                                dossiers associés.
-                            </p>
+                                <p className="mt-4 max-w-3xl text-sm font-medium leading-7 text-blue-50">
+                                    Créez, consultez et pilotez les vagues d’évaluation des établissements.
+                                </p>
+                            </div>
+
+                            <Link
+                                href="/dee/campagnes/create"
+                                className="inline-flex h-12 items-center gap-2 rounded-2xl bg-white px-5 text-sm font-black text-slate-900 transition hover:bg-blue-50"
+                            >
+                                <Plus size={18} />
+                                Créer une vague
+                            </Link>
                         </div>
 
-                        <Link
-                            href="/campagnes/create"
-                            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-black text-blue-700 shadow-lg shadow-blue-900/10 transition hover:bg-blue-50"
-                        >
-                            <Plus size={18} />
-                            Créer une vague
-                        </Link>
-                    </div>
+                        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                            <div className="rounded-3xl bg-white/12 p-6 backdrop-blur">
+                                <Layers3 size={26} />
+                                <p className="mt-4 text-xs font-black uppercase tracking-[0.22em] text-blue-100">
+                                    Vagues
+                                </p>
+                                <p className="mt-2 text-4xl font-black">
+                                    {stats.total}
+                                </p>
+                            </div>
 
-                    <div className="mt-8 grid gap-4 md:grid-cols-4">
-                        <StatCard icon={Layers3} label="Vagues" value={totalCampagnes} />
-                        <StatCard icon={Building2} label="Établissements" value={totalEtablissements} />
-                        <StatCard icon={FolderKanban} label="Dossiers" value={totalDossiers} />
-                        <StatCard icon={CalendarDays} label="Actives" value={totalActives} />
-                    </div>
+                            <div className="rounded-3xl bg-white/12 p-6 backdrop-blur">
+                                <ShieldCheck size={26} />
+                                <p className="mt-4 text-xs font-black uppercase tracking-[0.22em] text-blue-100">
+                                    Actives
+                                </p>
+                                <p className="mt-2 text-4xl font-black">
+                                    {stats.actives}
+                                </p>
+                            </div>
+
+                            <div className="rounded-3xl bg-white/12 p-6 backdrop-blur">
+                                <CalendarDays size={26} />
+                                <p className="mt-4 text-xs font-black uppercase tracking-[0.22em] text-blue-100">
+                                    Établissements
+                                </p>
+                                <p className="mt-2 text-4xl font-black">
+                                    {stats.etablissements}
+                                </p>
+                            </div>
+
+                            <div className="rounded-3xl bg-white/12 p-6 backdrop-blur">
+                                <FileText size={26} />
+                                <p className="mt-4 text-xs font-black uppercase tracking-[0.22em] text-blue-100">
+                                    Dossiers
+                                </p>
+                                <p className="mt-2 text-4xl font-black">
+                                    {stats.dossiers}
+                                </p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section className="mt-8 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
+                        <div className="flex flex-col justify-between gap-4 border-b border-slate-100 p-6 lg:flex-row lg:items-center">
+                            <div>
+                                <p className="text-sm font-black uppercase tracking-[0.28em] text-blue-600">
+                                    Liste principale
+                                </p>
+
+                                <h2 className="mt-2 text-2xl font-black text-slate-950">
+                                    Toutes les vagues
+                                </h2>
+
+                                <p className="mt-2 text-sm font-medium text-slate-500">
+                                    Consultez les vagues et supprimez-les uniquement avec le mot de passe DEE.
+                                </p>
+                            </div>
+
+                            <Link
+                                href="/dee/campagnes/create"
+                                className="inline-flex h-11 items-center gap-2 rounded-2xl bg-blue-600 px-5 text-sm font-black text-white transition hover:bg-blue-700"
+                            >
+                                <Plus size={18} />
+                                Nouvelle vague
+                            </Link>
+                        </div>
+
+                        {campagnes.length === 0 ? (
+                            <div className="flex min-h-[300px] flex-col items-center justify-center p-8 text-center">
+                                <Layers3 size={42} className="text-blue-600" />
+                                <h3 className="mt-4 text-xl font-black text-slate-950">
+                                    Aucune vague trouvée
+                                </h3>
+                            </div>
+                        ) : (
+                            <div className="overflow-x-auto">
+                                <table className="w-full min-w-[1000px] text-left">
+                                    <thead>
+                                        <tr className="border-b border-slate-100 bg-slate-50 text-xs font-black uppercase tracking-[0.18em] text-slate-400">
+                                            <th className="px-6 py-4">Référence</th>
+                                            <th className="px-6 py-4">Année</th>
+                                            <th className="px-6 py-4">Vocation</th>
+                                            <th className="px-6 py-4">Statut</th>
+                                            <th className="px-6 py-4">Établissements</th>
+                                            <th className="px-6 py-4">Dossiers</th>
+                                            <th className="px-6 py-4 text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        {campagnes.map((campagne) => (
+                                            <tr
+                                                key={campagne.id}
+                                                className="border-b border-slate-100 transition hover:bg-blue-50/40"
+                                            >
+                                                <td className="px-6 py-5">
+                                                    <div className="font-black text-slate-950">
+                                                        {campagne.reference || '—'}
+                                                    </div>
+                                                    <div className="mt-1 text-xs font-semibold text-slate-400">
+                                                        Créée le {campagne.created_at || '—'}
+                                                    </div>
+                                                </td>
+
+                                                <td className="px-6 py-5 text-sm font-bold text-slate-600">
+                                                    {campagne.annee || '—'}
+                                                </td>
+
+                                                <td className="px-6 py-5 text-sm font-bold text-slate-600">
+                                                    {campagne.vocation || '—'}
+                                                </td>
+
+                                                <td className="px-6 py-5">
+                                                    <span className="inline-flex rounded-full bg-green-50 px-3 py-1 text-xs font-black text-green-700">
+                                                        {campagne.statut || campagne.status || '—'}
+                                                    </span>
+                                                </td>
+
+                                                <td className="px-6 py-5 text-sm font-black text-slate-700">
+                                                    {campagne.etablissements_count ?? 0}
+                                                </td>
+
+                                                <td className="px-6 py-5 text-sm font-black text-slate-700">
+                                                    {campagne.dossiers_count ?? 0}
+                                                </td>
+
+                                                <td className="px-6 py-5">
+                                                    <div className="flex justify-end gap-2">
+                                                        <Link
+                                                            href={`/dee/campagnes/${campagne.id}`}
+                                                            className="inline-flex h-10 items-center gap-2 rounded-xl bg-blue-600 px-4 text-xs font-black text-white transition hover:bg-blue-700"
+                                                        >
+                                                            <Eye size={16} />
+                                                            Voir
+                                                        </Link>
+
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => openDeleteModal(campagne)}
+                                                            className="inline-flex h-10 items-center gap-2 rounded-xl bg-red-50 px-4 text-xs font-black text-red-600 transition hover:bg-red-600 hover:text-white"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                            Supprimer
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </section>
                 </div>
+            </div>
 
-                <div className="mt-8 rounded-[2rem] border border-slate-200 bg-white p-7 shadow-sm">
-                    <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-                        <div>
-                            <p className="text-sm font-bold uppercase tracking-[0.22em] text-blue-600">
-                                Liste principale
-                            </p>
-                            <h2 className="mt-2 text-2xl font-black text-slate-900">
-                                Toutes les vagues
-                            </h2>
-                        </div>
+            {showDeleteModal && selectedCampagne && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4 backdrop-blur-sm">
+                    <div className="w-full max-w-xl rounded-[2rem] bg-white shadow-2xl">
+                        <div className="flex items-start justify-between border-b border-slate-100 p-6">
+                            <div>
+                                <p className="text-xs font-black uppercase tracking-[0.25em] text-red-600">
+                                    Suppression sécurisée
+                                </p>
 
-                        <div className="relative w-full lg:max-w-xl">
-                            <Search
-                                size={18}
-                                className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-                            />
-                            <input
-                                type="text"
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                placeholder="Rechercher par référence, année, vocation, statut..."
-                                className="h-14 w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white"
-                            />
-                        </div>
-                    </div>
+                                <h3 className="mt-2 text-2xl font-black text-slate-950">
+                                    Confirmer la suppression
+                                </h3>
 
-                    {flash.success && (
-                        <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
-                            {flash.success}
-                        </div>
-                    )}
-
-                    {flash.error && (
-                        <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
-                            {flash.error}
-                        </div>
-                    )}
-
-                   <div className="mt-6 overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white">
-    <table className="w-full table-fixed">
-        <thead className="bg-slate-50">
-            <tr className="text-left text-[10px] font-black uppercase tracking-[0.12em] text-slate-500">
-                <th className="w-[13%] px-4 py-4">Référence</th>
-                <th className="w-[8%] px-4 py-4">Année</th>
-                <th className="w-[17%] px-4 py-4">Vocation</th>
-                <th className="w-[10%] px-4 py-4">Statut</th>
-                <th className="w-[11%] px-4 py-4 text-center">Étab.</th>
-                <th className="w-[9%] px-4 py-4 text-center">Dossiers</th>
-                <th className="w-[12%] px-4 py-4">Créée par</th>
-                <th className="w-[12%] px-4 py-4">Date</th>
-                <th className="w-[18%] px-4 py-4 text-right">Actions</th>
-            </tr>
-        </thead>
-
-        <tbody className="divide-y divide-slate-100 bg-white">
-            {filteredCampagnes.length > 0 ? (
-                filteredCampagnes.map((item) => (
-                    <tr
-                        key={item.id}
-                        className="align-middle transition hover:bg-slate-50/70"
-                    >
-                        <td className="px-4 py-5">
-                            <div className="break-words text-sm font-black leading-5 text-slate-900">
-                                {item.reference || '—'}
-                            </div>
-                        </td>
-
-                        <td className="px-4 py-5 text-sm font-bold text-slate-700">
-                            {item.annee || '—'}
-                        </td>
-
-                        <td className="px-4 py-5">
-                            <div className="break-words text-sm font-bold leading-5 text-slate-900">
-                                {item.vocation || '—'}
+                                <p className="mt-2 text-sm font-medium leading-7 text-slate-500">
+                                    Pour supprimer la vague{' '}
+                                    <strong>
+                                        {selectedCampagne.reference || `#${selectedCampagne.id}`}
+                                    </strong>
+                                    , saisissez le mot de passe unique administrateur DEE.
+                                </p>
                             </div>
 
-                            {item.observation && (
-                                <div className="mt-1 line-clamp-2 break-words text-xs font-medium leading-5 text-slate-500">
-                                    {item.observation}
-                                </div>
+                            <button
+                                type="button"
+                                onClick={closeDeleteModal}
+                                className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200"
+                            >
+                                <X size={18} />
+                            </button>
+                        </div>
+
+                        <form onSubmit={submitDelete} className="p-6">
+                            <label className="mb-2 block text-sm font-black text-slate-700">
+                                Mot de passe DEE
+                            </label>
+
+                            <div className="relative">
+                                <LockKeyhole
+                                    size={18}
+                                    className="absolute left-4 top-1/2 -translate-y-1/2 text-red-500"
+                                />
+
+                                <input
+                                    type="password"
+                                    value={deleteForm.data.delete_password}
+                                    onChange={(e) => {
+                                        deleteForm.setData('delete_password', e.target.value);
+                                        deleteForm.clearErrors('delete_password');
+                                    }}
+                                    placeholder="Mot de passe de confirmation"
+                                    className={`h-14 w-full rounded-2xl border bg-slate-50 pl-12 pr-4 text-sm font-bold text-slate-700 outline-none transition focus:bg-white focus:ring-4 ${
+                                        deleteForm.errors.delete_password
+                                            ? 'border-red-500 focus:ring-red-100'
+                                            : 'border-slate-200 focus:border-red-500 focus:ring-red-100'
+                                    }`}
+                                />
+                            </div>
+
+                            {deleteForm.errors.delete_password && (
+                                <p className="mt-2 text-sm font-bold text-red-600">
+                                    {deleteForm.errors.delete_password}
+                                </p>
                             )}
-                        </td>
-
-                        <td className="px-4 py-5">
-                            <StatusBadge statut={item.statut} />
-                        </td>
-
-                        <td className="px-4 py-5 text-center text-sm font-black text-slate-700">
-                            {item.etablissements_count ?? 0}
-                        </td>
-
-                        <td className="px-4 py-5 text-center text-sm font-black text-slate-700">
-                            {item.dossiers_count ?? 0}
-                        </td>
-
-                        <td className="px-4 py-5">
-                            <div className="break-words text-sm font-bold text-slate-700">
-                                {item.created_by || '—'}
-                            </div>
-                        </td>
-
-                        <td className="px-4 py-5">
-                            <div className="text-sm font-semibold leading-5 text-slate-600">
-                                {item.created_at || '—'}
-                            </div>
-                        </td>
-
-                        <td className="px-4 py-5">
-                            <div className="flex items-center justify-end gap-2 whitespace-nowrap">
-                                <Link
-                                    href={`/campagnes/${item.id}`}
-                                    className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-3 py-2 text-xs font-black text-white transition hover:bg-blue-700"
-                                >
-                                    <Eye size={14} />
-                                    Ouvrir
-                                </Link>
-
-                                <button
-                                    type="button"
-                                    onClick={() => setDeleteItem(item)}
-                                    className="inline-flex items-center gap-1.5 rounded-xl bg-red-600 px-3 py-2 text-xs font-black text-white transition hover:bg-red-700"
-                                >
-                                    <Trash2 size={14} />
-                                    Supprimer
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                ))
-            ) : (
-                <tr>
-                    <td
-                        colSpan="9"
-                        className="px-6 py-14 text-center text-sm font-semibold text-slate-500"
-                    >
-                        Aucune vague trouvée.
-                    </td>
-                </tr>
-            )}
-        </tbody>
-    </table>
-</div>
-
-                    <p className="mt-4 text-xs font-medium text-slate-400">
-                        Toutes les informations principales des vagues sont affichées directement dans cette page.
-                    </p>
-                </div>
-
-                {deleteItem && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
-                        <div className="w-full max-w-lg rounded-[2rem] bg-white p-7 shadow-2xl">
-                            <div className="mb-5 flex items-start justify-between">
-                                <div>
-                                    <p className="text-sm font-bold uppercase tracking-[0.22em] text-red-600">
-                                        Suppression
-                                    </p>
-                                    <h3 className="mt-2 text-2xl font-black text-slate-900">
-                                        Confirmer la suppression
-                                    </h3>
-                                </div>
-
-                                <button
-                                    type="button"
-                                    onClick={() => setDeleteItem(null)}
-                                    className="rounded-xl bg-slate-100 p-2 text-slate-600 transition hover:bg-slate-200"
-                                >
-                                    <X size={18} />
-                                </button>
-                            </div>
-
-                            <p className="text-sm leading-7 text-slate-600">
-                                Tu vas supprimer définitivement la vague :
-                                <span className="font-bold text-slate-900">
-                                    {' '}
-                                    {deleteItem.reference}
-                                </span>
-                            </p>
-
-                            <p className="mt-3 text-sm leading-7 text-slate-500">
-                                Si cette vague contient des établissements ou des dossiers, la
-                                suppression peut échouer selon les relations de la base de données.
-                            </p>
 
                             <div className="mt-6 flex justify-end gap-3">
                                 <button
                                     type="button"
-                                    onClick={() => setDeleteItem(null)}
-                                    className="rounded-xl border border-slate-300 px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
+                                    onClick={closeDeleteModal}
+                                    className="inline-flex h-12 items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 text-sm font-black text-slate-700 hover:bg-slate-50"
                                 >
                                     Annuler
                                 </button>
 
                                 <button
-                                    type="button"
-                                    onClick={submitDelete}
-                                    className="rounded-xl bg-red-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-red-700"
+                                    type="submit"
+                                    disabled={deleteForm.processing}
+                                    className="inline-flex h-12 items-center gap-2 rounded-2xl bg-red-600 px-5 text-sm font-black text-white shadow-lg shadow-red-600/20 transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
                                 >
-                                    Supprimer définitivement
+                                    <Trash2 size={18} />
+                                    {deleteForm.processing ? 'Suppression...' : 'Supprimer définitivement'}
                                 </button>
                             </div>
-                        </div>
+                        </form>
                     </div>
-                )}
-            </div>
+                </div>
+            )}
         </>
     );
 }
 
-function StatCard({ icon: Icon, label, value }) {
-    return (
-        <div className="rounded-[1.5rem] bg-white/10 p-5 backdrop-blur">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15">
-                <Icon size={24} />
-            </div>
-            <p className="mt-4 text-xs font-bold uppercase tracking-[0.24em] text-blue-100">
-                {label}
-            </p>
-            <p className="mt-2 text-4xl font-black">{value}</p>
-        </div>
-    );
-}
+Index.layout = (page) => <DashboardShell>{page}</DashboardShell>;
 
-function StatusBadge({ statut }) {
-    const value = statut || '—';
-    const lower = value.toLowerCase();
-
-    let classes = 'bg-slate-100 text-slate-700';
-
-    if (lower.includes('active')) {
-        classes = 'bg-emerald-100 text-emerald-700';
-    } else if (lower.includes('brouillon')) {
-        classes = 'bg-amber-100 text-amber-700';
-    } else if (lower.includes('clôturée') || lower.includes('cloturee')) {
-        classes = 'bg-slate-200 text-slate-700';
-    } else if (lower.includes('archivée') || lower.includes('archivee')) {
-        classes = 'bg-red-100 text-red-700';
-    }
-
-    return (
-        <span className={`inline-flex rounded-full px-3 py-1 text-xs font-black ${classes}`}>
-            {value}
-        </span>
-    );
-}
-
-CampagnesIndex.layout = (page) => <DashboardShell>{page}</DashboardShell>;
-
-export default CampagnesIndex;
+export default Index;

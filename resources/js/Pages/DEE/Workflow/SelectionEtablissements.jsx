@@ -11,7 +11,7 @@ export default function SelectionEtablissements({ campagnes = [] }) {
                 subtitle="Workflow DEE"
                 action={
                     <Link
-                        href="/campagnes/create"
+                        href="/dee/campagnes/create"
                         className="rounded-xl bg-[#223270] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#1b285a]"
                     >
                         Nouvelle vague
@@ -42,13 +42,13 @@ export default function SelectionEtablissements({ campagnes = [] }) {
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-4">
                                                 <Link
-                                                    href={`/campagnes/${campagne.id}/etablissements`}
+                                                    href={`/dee/campagnes/${campagne.id}/etablissements`}
                                                     className="font-semibold text-blue-700 hover:text-blue-900"
                                                 >
                                                     Gérer la sélection
                                                 </Link>
                                                 <Link
-                                                    href={`/campagnes/${campagne.id}`}
+                                                    href={`/dee/campagnes/${campagne.id}`}
                                                     className="font-semibold text-slate-700 hover:text-slate-900"
                                                 >
                                                     Voir la vague

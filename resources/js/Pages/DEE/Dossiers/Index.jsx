@@ -67,7 +67,7 @@ function DossiersIndex({ dossiers = [] }) {
             return;
         }
 
-        router.delete(`/dossiers/${dossier.id}`, {
+        router.delete(`/dee/dossiers/${dossier.id}`, {
             preserveScroll: true,
         });
     };
@@ -206,7 +206,7 @@ function DossiersIndex({ dossiers = [] }) {
                                                 <td className="px-6 py-5">
                                                     <div className="flex justify-end gap-2">
                                                         <Link
-                                                            href={`/dossiers/${dossier.id}`}
+                                                            href={`/dee/dossiers/${dossier.id}`}
                                                             className="inline-flex h-10 items-center gap-2 rounded-xl bg-blue-600 px-4 text-xs font-black text-white transition hover:bg-blue-700"
                                                         >
                                                             <Eye size={16} />

@@ -2,108 +2,108 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Accès établissement ANEAQ</title>
+    <title>Accès à la plateforme ANEAQ</title>
 </head>
 
-<body style="margin:0; padding:0; background:#f4f7fb; font-family:Arial, Helvetica, sans-serif; color:#172033;">
-    <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f7fb; padding:40px 0;">
-        <tr>
-            <td align="center">
-                <table width="620" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:18px; overflow:hidden; box-shadow:0 12px 35px rgba(15,23,42,0.10);">
+<body style="margin:0;padding:0;background:#f4f7fb;font-family:Arial,Helvetica,sans-serif;color:#0f172a;">
+    <div style="max-width:900px;margin:0 auto;padding:32px 24px;">
 
-                    <tr>
-                        <td style="background:linear-gradient(135deg,#2438d7,#0891b2); padding:34px 38px; color:#ffffff;">
-                            <div style="font-size:13px; letter-spacing:4px; text-transform:uppercase; font-weight:bold; opacity:0.9;">
-                                ANEAQ
-                            </div>
+        <div style="font-size:12px;font-weight:800;letter-spacing:0.30em;color:#2563eb;text-transform:uppercase;margin-bottom:12px;">
+            ANEAQ
+        </div>
 
-                            <h1 style="margin:14px 0 0; font-size:28px; line-height:1.3;">
-                                Accès à la plateforme
-                            </h1>
+        <h1 style="margin:0 0 24px 0;font-size:26px;color:#0f172a;">
+            Sélection à l’évaluation institutionnelle
+        </h1>
 
-                            <p style="margin:12px 0 0; font-size:15px; line-height:1.8; color:#eaf2ff;">
-                                Votre compte établissement a été créé avec succès.
-                            </p>
-                        </td>
-                    </tr>
+        <div style="background:linear-gradient(135deg,#13255c,#223983);border-radius:24px;padding:34px 36px;color:white;">
+            <div style="font-size:12px;font-weight:700;letter-spacing:0.25em;text-transform:uppercase;color:#bfdbfe;">
+                Notification officielle
+            </div>
 
-                    <tr>
-                        <td style="padding:34px 38px;">
-                            <p style="margin:0 0 18px; font-size:15px; line-height:1.8;">
-                                Bonjour,
-                            </p>
+            <h2 style="margin:18px 0 0;font-size:30px;line-height:1.3;color:#ffffff;">
+                Votre établissement a été sélectionné
+            </h2>
 
-                            <p style="margin:0 0 22px; font-size:15px; line-height:1.8;">
-                                Le compte de votre établissement a été créé sur la plateforme ANEAQ.
-                                Vous pouvez utiliser les identifiants ci-dessous pour vous connecter.
-                            </p>
+            <p style="margin:22px 0 0;font-size:16px;line-height:1.8;color:#e0e7ff;">
+                Bonjour, votre établissement
+                <strong>{{ $etablissementName ?? 'Établissement' }}</strong>
+                a été sélectionné dans le cadre de l’évaluation institutionnelle de l’ANEAQ.
+            </p>
+        </div>
 
-                            <div style="background:#f8fafc; border:1px solid #e5eaf3; border-radius:14px; padding:20px; margin:24px 0;">
-                                <p style="margin:0 0 8px; font-size:12px; letter-spacing:3px; text-transform:uppercase; color:#64748b; font-weight:bold;">
-                                    Établissement
-                                </p>
+        @if(!empty($messageLettre))
+            <div style="background:#ffffff;border:1px solid #e5e7eb;border-radius:24px;padding:28px 30px;margin-top:24px;">
+                <div style="font-size:12px;font-weight:800;letter-spacing:0.20em;color:#2563eb;text-transform:uppercase;margin-bottom:14px;">
+                    Message officiel DEE
+                </div>
 
-                                <p style="margin:0; font-size:17px; font-weight:bold; color:#0f172a;">
-                                    {{ $etablissementName }}
-                                </p>
-                            </div>
+                <div style="font-size:16px;line-height:1.9;color:#334155;white-space:pre-line;">
+                    {{ $messageLettre }}
+                </div>
+            </div>
+        @else
+            <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:24px;padding:20px 24px;margin-top:24px;">
+                <div style="font-size:14px;line-height:1.7;color:#9a3412;">
+                    Aucun message DEE n’a été saisi.
+                </div>
+            </div>
+        @endif
 
-                            <div style="background:#eef5ff; border:1px solid #dbeafe; border-radius:14px; padding:18px; margin-bottom:14px;">
-                                <p style="margin:0 0 8px; font-size:12px; letter-spacing:3px; text-transform:uppercase; color:#2563eb; font-weight:bold;">
-                                    Email
-                                </p>
+        <div style="background:#ffffff;border:1px solid #e5e7eb;border-radius:24px;padding:28px 30px;margin-top:24px;">
+            <h2 style="margin:0 0 22px 0;font-size:22px;color:#0f172a;">
+                Informations de connexion
+            </h2>
 
-                                <p style="margin:0; font-size:15px; font-weight:bold; color:#172033;">
-                                    {{ $loginEmail }}
-                                </p>
-                            </div>
+            <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:18px;padding:18px 22px;">
+                <p style="margin:0 0 14px 0;font-size:15px;color:#334155;">
+                    <strong>Email :</strong>
+                    <a href="mailto:{{ $loginEmail ?? $email ?? '—' }}" style="color:#2563eb;text-decoration:underline;">
+                        {{ $loginEmail ?? $email ?? '—' }}
+                    </a>
+                </p>
 
-                            <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:14px; padding:18px; margin-bottom:14px;">
-                                <p style="margin:0 0 8px; font-size:12px; letter-spacing:3px; text-transform:uppercase; color:#16a34a; font-weight:bold;">
-                                    Mot de passe
-                                </p>
+                <p style="margin:0 0 14px 0;font-size:15px;color:#334155;">
+                    <strong>Mot de passe temporaire :</strong>
+                    {{ $plainPassword ?? $password ?? '—' }}
+                </p>
 
-                                <p style="margin:0; font-size:17px; font-weight:bold; color:#172033;">
-                                    {{ $plainPassword }}
-                                </p>
-                            </div>
+                @if(!empty($dossierReference))
+                    <p style="margin:0 0 14px 0;font-size:15px;color:#334155;">
+                        <strong>Référence du dossier :</strong>
+                        {{ $dossierReference }}
+                    </p>
+                @endif
 
-                            <div style="background:#f8fafc; border:1px solid #e5eaf3; border-radius:14px; padding:18px;">
-                                <p style="margin:0 0 8px; font-size:12px; letter-spacing:3px; text-transform:uppercase; color:#64748b; font-weight:bold;">
-                                    Dossier
-                                </p>
+                @if(!empty($campaignReference))
+                    <p style="margin:0;font-size:15px;color:#334155;">
+                        <strong>Référence de la vague :</strong>
+                        {{ $campaignReference }}
+                    </p>
+                @endif
+            </div>
 
-                                <p style="margin:0; font-size:15px; font-weight:bold; color:#172033;">
-                                    {{ $dossierReference }}
-                                </p>
+            <p style="margin:28px 0 0;font-size:16px;line-height:1.8;color:#334155;">
+                Nous vous invitons à vous connecter à la plateforme et à modifier votre mot de passe après la première connexion.
+                Vous pourrez ensuite compléter le premier formulaire, renseigner le responsable du comité d’autoévaluation
+                et déposer les annexes demandées.
+            </p>
 
-                                <p style="margin:10px 0 0; font-size:13px; color:#64748b;">
-                                    Vague : {{ $campagneReference }}
-                                </p>
-                            </div>
+            <p style="margin:28px 0 0;font-size:14px;line-height:1.8;color:#64748b;">
+                Cordialement,<br>
+                Division de l’Évaluation des Établissements - ANEAQ
+            </p>
+        </div>
 
-                            <p style="margin:26px 0 0; font-size:14px; line-height:1.8; color:#475569;">
-                                Pour des raisons de sécurité, il est recommandé de modifier ce mot de passe après la première connexion.
-                            </p>
+        <div style="background:#0f1f4d;color:white;border-radius:0 0 24px 24px;margin-top:24px;padding:24px;text-align:center;">
+            <div style="font-size:20px;font-weight:800;">
+                ANEAQ
+            </div>
 
-                            <p style="margin:28px 0 0; font-size:15px; line-height:1.8;">
-                                Cordialement,<br>
-                                <strong>ANEAQ</strong>
-                            </p>
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <td style="background:#0f1e4a; padding:18px 38px; text-align:center;">
-                            <p style="margin:0; font-size:12px; color:#b8c7e6;">
-                                © 2026 ANEAQ - Division de l’Évaluation des Établissements
-                            </p>
-                        </td>
-                    </tr>
-
-                </table>
-            </td>
-        </tr>
-    </table>
+            <div style="font-size:12px;margin-top:10px;color:#dbeafe;">
+                Agence Nationale d’Évaluation et d’Assurance Qualité de l’Enseignement Supérieur et de la Recherche Scientifique.
+            </div>
+        </div>
+    </div>
 </body>
 </html>

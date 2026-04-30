@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\DEE;
+
+use App\Http\Controllers\Controller;
 
 use App\Models\Dossier;
 use App\Models\DossierExpert;
@@ -142,7 +144,7 @@ class DossierController extends Controller
         });
 
         return redirect()
-            ->route('dossiers.index')
+            ->route('dee.dossiers.index')
             ->with('success', 'Dossier supprimé avec succès.');
     }
 

@@ -68,7 +68,7 @@ function CampagneEtablissements({
         setProcessing(true);
 
         router.post(
-            `/campagnes/${campagne.id}/etablissements/sync`,
+            `/dee/campagnes/${campagne.id}/etablissements/sync`,
             {
                 items: [
                     {
@@ -112,7 +112,7 @@ function CampagneEtablissements({
         setProcessing(true);
 
         router.post(
-            `/campagnes/${campagne.id}/etablissements/${emailModalItem.etablissement_id}/confirm`,
+            `/dee/campagnes/${campagne.id}/etablissements/${emailModalItem.etablissement_id}/confirm`,
             { email },
             {
                 preserveScroll: true,
@@ -136,7 +136,7 @@ function CampagneEtablissements({
         setProcessing(true);
 
         router.delete(
-            `/campagnes/${campagne.id}/etablissements/${refuseModalItem.id}`,
+            `/dee/campagnes/${campagne.id}/etablissements/${refuseModalItem.id}`,
             {
                 preserveScroll: true,
                 onSuccess: () => {
@@ -171,7 +171,7 @@ function CampagneEtablissements({
 
                 <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
                     <Link
-                        href={`/campagnes/${campagne.id}`}
+                        href={`/dee/campagnes/${campagne.id}`}
                         className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 shadow-sm transition hover:bg-slate-50"
                     >
                         <ArrowLeft size={17} />
@@ -306,7 +306,7 @@ function CampagneEtablissements({
                                                 </div>
 
                                                 <Link
-                                                    href={`/dossiers/${item.dossier.id}`}
+                                                    href={`/dee/dossiers/${item.dossier.id}`}
                                                     className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-black text-white transition hover:bg-blue-700"
                                                 >
                                                     <Eye size={15} />

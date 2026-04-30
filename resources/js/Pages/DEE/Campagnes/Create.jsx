@@ -1,562 +1,404 @@
-import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
+import DashboardShell from '@/Layouts/DashboardShell';
 import {
     ArrowLeft,
-    CalendarDays,
+    Check,
     ChevronDown,
-    Globe,
     Layers3,
-    LogOut,
     Save,
-    User,
+    X,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-export default function Create() {
-    const { props } = usePage();
-    const auth = props.auth || {};
-    const locale = props.locale || 'fr';
-    const isArabic = locale === 'ar';
+function Create({ vocations = [], defaultYear = null, annee = null }) {
+    const [openVocationBox, setOpenVocationBox] = useState(false);
+    const boxRef = useRef(null);
 
-    const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-    const menuRef = useRef(null);
+    const normalizedVocations = useMemo(() => {
+        return vocations.map((item, index) => {
+            const value = item.value ?? item.name ?? item.label ?? item.domaine_connaissances ?? String(index);
+            const label = item.label ?? item.name ?? item.value ?? item.domaine_connaissances ?? 'Type inconnu';
+            const count = item.count ?? item.etablissements_count ?? item.total ?? 0;
 
-    const form = useForm({
-        annee: new Date().getFullYear().toString(),
-        vocation: '',
+            return {
+                value,
+                label,
+                count,
+            };
+        });
+    }, [vocations]);
+
+    const { data, setData, post, processing, errors } = useForm({
+        annee: defaultYear ?? annee ?? new Date().getFullYear(),
+        vocations: [],
         observation: '',
     });
 
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (menuRef.current && !menuRef.current.contains(event.target)) {
-                setProfileMenuOpen(false);
+            if (boxRef.current && !boxRef.current.contains(event.target)) {
+                setOpenVocationBox(false);
             }
         };
 
         document.addEventListener('mousedown', handleClickOutside);
+
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const t = useMemo(() => {
-        const fr = {
-            about: 'À propos',
-            universities: 'Universités',
-            guides: 'Guides',
-            arabic: 'العربية',
-            french: 'Français',
-            profile: 'Voir le profil',
-            logout: 'Se déconnecter',
-            dashboard: 'Dashboard DEE',
+    const selectedVocations = useMemo(() => {
+        return normalizedVocations.filter((item) => data.vocations.includes(item.value));
+    }, [normalizedVocations, data.vocations]);
 
-            pageBadge: "Vagues d’évaluation",
-            pageTitle: 'Créer une nouvelle vague',
-            pageDesc:
-                "Renseignez les informations principales afin de créer une vague d’évaluation et organiser les établissements concernés.",
+    const selectedEtablissementsCount = selectedVocations.reduce((total, item) => {
+        return total + Number(item.count ?? 0);
+    }, 0);
 
-            year: 'Année',
-            vocation: 'Vocation des établissements',
-            observation: 'Observation',
+    const toggleVocation = (value) => {
+        if (data.vocations.includes(value)) {
+            setData(
+                'vocations',
+                data.vocations.filter((item) => item !== value)
+            );
+        } else {
+            setData('vocations', [...data.vocations, value]);
+        }
+    };
 
-            yearPlaceholder: 'Ex : 2026',
-            vocationPlaceholder: "Ex : Universités publiques, écoles d’ingénieurs...",
-            observationPlaceholder:
-                'Contexte de la vague, objectifs, consignes DEE, remarques générales...',
-
-            formBadge: 'Formulaire principal',
-            formTitle: 'Informations de la vague',
-            formDesc:
-                'Ces informations seront utilisées pour identifier la vague et suivre son processus d’évaluation.',
-
-            createWave: 'Créer la vague',
-            backToList: 'Retour aux vagues',
-
-            selectedYear: 'Année sélectionnée',
-            initialStatus: 'Statut initial',
-            activeAfterCreation: 'Active après création',
-
-            footerNavigation: 'Navigation',
-            footerContact: 'Contact',
-            rights: '© 2026 ANEAQ - Division de l’Evaluation des Etablissements. Tous droits réservés.',
-        };
-
-        const ar = {
-            about: 'حول المنصة',
-            universities: 'الجامعات',
-            guides: 'الأدلة',
-            arabic: 'العربية',
-            french: 'Français',
-            profile: 'الملف الشخصي',
-            logout: 'تسجيل الخروج',
-            dashboard: 'لوحة القيادة',
-
-            pageBadge: 'حملات التقييم',
-            pageTitle: 'إنشاء حملة تقييم جديدة',
-            pageDesc:
-                'قم بإدخال المعلومات الأساسية لإنشاء حملة تقييم وتنظيم المؤسسات المعنية.',
-
-            year: 'السنة',
-            vocation: 'طبيعة المؤسسات',
-            observation: 'ملاحظة',
-
-            yearPlaceholder: 'مثال: 2026',
-            vocationPlaceholder: 'مثال: الجامعات العمومية، مدارس المهندسين...',
-            observationPlaceholder:
-                'سياق الحملة، الأهداف، التعليمات، والملاحظات العامة...',
-
-            formBadge: 'الاستمارة الرئيسية',
-            formTitle: 'معلومات الحملة',
-            formDesc:
-                'سيتم استخدام هذه المعلومات لتحديد الحملة وتتبع مراحل التقييم.',
-
-            createWave: 'إنشاء الحملة',
-            backToList: 'العودة إلى الحملات',
-
-            selectedYear: 'السنة المختارة',
-            initialStatus: 'الحالة الأولية',
-            activeAfterCreation: 'نشطة بعد الإنشاء',
-
-            footerNavigation: 'التنقل',
-            footerContact: 'اتصل بنا',
-            rights: '© 2026 الوكالة الوطنية - مديرية تقييم المؤسسات. جميع الحقوق محفوظة.',
-        };
-
-        return isArabic ? ar : fr;
-    }, [isArabic]);
-
-    const universities = [
-        { name: 'Université Mohammed V – Rabat', link: 'http://www.um5.ac.ma/um5/' },
-        { name: 'Université Hassan II – Casablanca', link: 'http://www.uh2c.ac.ma/' },
-        { name: 'Université Cadi Ayyad – Marrakech', link: 'http://www.uca.ma' },
-        { name: 'Université Sidi Mohammed Ben Abdellah – Fès', link: 'http://www.usmba.ac.ma/' },
-        { name: 'Université Moulay Ismail – Meknès', link: 'http://www.umi.ac.ma' },
-        { name: 'Université Abdelmalek Essaadi – Tétouan', link: 'http://www.uae.ma/' },
-    ];
+    const removeVocation = (value) => {
+        setData(
+            'vocations',
+            data.vocations.filter((item) => item !== value)
+        );
+    };
 
     const submit = (e) => {
         e.preventDefault();
 
-        form.post('/campagnes', {
+        post('/dee/campagnes', {
             preserveScroll: true,
         });
     };
 
     return (
         <>
-            <Head title="Nouvelle vague - ANEAQ" />
+            <Head title="Créer une vague" />
 
-            <div dir={isArabic ? 'rtl' : 'ltr'} className="min-h-screen bg-[#f6f8fc] text-slate-800">
-                {/* HEADER */}
-                <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur-md">
-                    <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-                        <div className="flex items-center gap-6">
-                            <Link href="/" className="flex items-center gap-4">
-                                <img
-                                    src="/images/logo-ministere.png"
-                                    alt="Ministère"
-                                    className="h-11 rounded-xl bg-white p-1.5 shadow-sm"
-                                    onError={(e) => {
-                                        e.currentTarget.style.display = 'none';
-                                    }}
-                                />
-
-                                <div className="h-9 w-px bg-slate-200" />
-
-                                <img
-                                    src="/images/logo-aneaq.png"
-                                    alt="ANEAQ"
-                                    className="h-11 rounded-xl bg-white p-1.5 shadow-sm"
-                                    onError={(e) => {
-                                        e.currentTarget.style.display = 'none';
-                                    }}
-                                />
-                            </Link>
-
-                            <div className="hidden items-center gap-8 text-sm font-semibold text-slate-700 xl:flex">
-                                <Link href="/" className="transition hover:text-blue-600">
-                                    {t.about}
-                                </Link>
-
-                                <div className="relative group">
-                                    <button
-                                        type="button"
-                                        className="flex items-center gap-1 transition hover:text-blue-600"
-                                    >
-                                        {t.universities}
-                                        <ChevronDown size={16} />
-                                    </button>
-
-                                    <div className="absolute left-0 top-full hidden w-[620px] rounded-2xl border border-slate-100 bg-white p-5 shadow-2xl group-hover:block">
-                                        <div className="grid grid-cols-2 gap-x-6 gap-y-2">
-                                            {universities.map((u, i) => (
-                                                <a
-                                                    key={i}
-                                                    href={u.link}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="rounded-xl border-b border-slate-50 p-2.5 text-sm font-medium transition hover:bg-blue-50 hover:text-blue-700"
-                                                >
-                                                    {u.name}
-                                                </a>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <Link href="/" className="transition hover:text-blue-600">
-                                    {t.guides}
-                                </Link>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                            <button
-                                type="button"
-                                onClick={() => router.post(`/language/${isArabic ? 'fr' : 'ar'}`)}
-                                className="hidden items-center gap-2 rounded-full border border-slate-300 px-4 py-2 text-xs font-bold text-slate-700 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white md:flex"
-                            >
-                                <Globe size={16} />
-                                {isArabic ? t.french : t.arabic}
-                            </button>
-
-                            {auth?.user && (
-                                <>
-                                    <div className="relative" ref={menuRef}>
-                                        <button
-                                            type="button"
-                                            onClick={() => setProfileMenuOpen((prev) => !prev)}
-                                            className="hidden items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-600 lg:flex"
-                                        >
-                                            {auth.user.name}
-                                            <ChevronDown size={16} />
-                                        </button>
-
-                                        {profileMenuOpen && (
-                                            <div className="absolute right-0 mt-3 w-56 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
-                                                <Link
-                                                    href="/profile"
-                                                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-                                                >
-                                                    <User size={18} />
-                                                    {t.profile}
-                                                </Link>
-
-                                                <Link
-                                                    href="/logout"
-                                                    method="post"
-                                                    as="button"
-                                                    className="flex w-full items-center gap-3 px-4 py-3 text-sm font-medium text-red-600 transition hover:bg-red-50"
-                                                >
-                                                    <LogOut size={18} />
-                                                    {t.logout}
-                                                </Link>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <Link
-                                        href="/dashboard"
-                                        className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700"
-                                    >
-                                        {t.dashboard}
-                                    </Link>
-                                </>
-                            )}
-                        </div>
-                    </div>
-                </header>
-
-                <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-                    {/* HERO */}
-                    <section className="overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#2636c9] via-[#2673e8] to-[#0ea5c6] p-8 text-white shadow-2xl shadow-blue-900/20 md:p-10">
-                        <div className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
+            <div className="min-h-screen bg-[#f6f8fc] px-4 py-10 sm:px-6 lg:px-8">
+                <div className="mx-auto max-w-7xl">
+                    <section className="overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#2934c8] via-[#2563eb] to-[#0891b2] p-8 text-white shadow-xl shadow-blue-900/20">
+                        <div className="grid gap-8 lg:grid-cols-[1fr_0.85fr] lg:items-center">
                             <div>
-                                <p className="text-sm font-black uppercase tracking-[0.32em] text-blue-100">
-                                    {t.pageBadge}
+                                <p className="text-sm font-black uppercase tracking-[0.28em] text-blue-100">
+                                    Nouvelle vague
                                 </p>
 
-                                <h1 className="mt-5 text-4xl font-black tracking-[-0.04em] sm:text-5xl">
-                                    {t.pageTitle}
+                                <h1 className="mt-4 text-4xl font-black tracking-tight lg:text-5xl">
+                                    Créer une nouvelle vague
                                 </h1>
 
-                                <p className="mt-5 max-w-3xl text-sm font-medium leading-8 text-blue-50/90">
-                                    {t.pageDesc}
+                                <p className="mt-5 max-w-3xl text-sm font-medium leading-7 text-blue-50">
+                                    Sélectionnez les types des établissements concernés. Après la création,
+                                    les établissements correspondants seront ajoutés automatiquement à la vague.
                                 </p>
 
-                                <div className="mt-8 flex flex-wrap gap-4">
-                                    <button
-                                        type="button"
-                                        onClick={() => router.visit('/campagnes')}
-                                        className="inline-flex items-center gap-2 rounded-2xl bg-white px-6 py-3 text-sm font-bold text-[#223270] transition hover:bg-blue-50"
+                                <div className="mt-8 flex flex-wrap gap-3">
+                                    <Link
+                                        href="/dee/campagnes"
+                                        className="inline-flex h-12 items-center gap-2 rounded-2xl bg-white px-5 text-sm font-black text-slate-900 transition hover:bg-blue-50"
                                     >
                                         <ArrowLeft size={18} />
-                                        {t.backToList}
-                                    </button>
+                                        Retour aux vagues
+                                    </Link>
 
                                     <button
                                         type="button"
                                         onClick={submit}
-                                        disabled={form.processing}
-                                        className="inline-flex items-center gap-2 rounded-2xl border border-white/30 bg-white/10 px-6 py-3 text-sm font-bold text-white backdrop-blur transition hover:bg-white/20 disabled:opacity-60"
+                                        disabled={processing}
+                                        className="inline-flex h-12 items-center gap-2 rounded-2xl bg-white/15 px-5 text-sm font-black text-white ring-1 ring-white/30 transition hover:bg-white/25 disabled:cursor-not-allowed disabled:opacity-60"
                                     >
                                         <Save size={18} />
-                                        {t.createWave}
+                                        {processing ? 'Création...' : 'Créer la vague'}
                                     </button>
                                 </div>
                             </div>
 
-                            <div className="grid gap-4 sm:grid-cols-2">
-                                <HeroCard
-                                    icon={CalendarDays}
-                                    label={t.selectedYear}
-                                    value={form.data.annee || '—'}
-                                />
-
-                                <HeroCard
-                                    icon={Layers3}
-                                    label={t.initialStatus}
-                                    value={t.activeAfterCreation}
-                                />
-
-                                <div className="rounded-[1.5rem] bg-white/12 p-5 backdrop-blur sm:col-span-2">
-                                    <p className="text-xs font-black uppercase tracking-[0.24em] text-blue-100">
-                                        {t.vocation}
+                            <div className="grid gap-4 sm:grid-cols-3">
+                                <div className="rounded-3xl bg-white/12 p-6 backdrop-blur">
+                                    <p className="text-xs font-black uppercase tracking-[0.22em] text-blue-100">
+                                        Année
                                     </p>
 
-                                    <p className="mt-3 break-words text-sm font-black leading-6 text-white">
-                                        {form.data.vocation || '—'}
+                                    <p className="mt-3 text-2xl font-black">
+                                        {data.annee || '—'}
+                                    </p>
+                                </div>
+
+                                <div className="rounded-3xl bg-white/12 p-6 backdrop-blur">
+                                    <p className="text-xs font-black uppercase tracking-[0.22em] text-blue-100">
+                                        Types choisis
+                                    </p>
+
+                                    <p className="mt-3 text-2xl font-black">
+                                        {selectedVocations.length}
+                                    </p>
+                                </div>
+
+                                <div className="rounded-3xl bg-white/12 p-6 backdrop-blur">
+                                    <p className="text-xs font-black uppercase tracking-[0.22em] text-blue-100">
+                                        Établissements
+                                    </p>
+
+                                    <p className="mt-3 text-2xl font-black">
+                                        {selectedEtablissementsCount}
                                     </p>
                                 </div>
                             </div>
                         </div>
+
+                        {selectedVocations.length > 0 && (
+                            <div className="mt-8 rounded-3xl bg-white/10 p-5 ring-1 ring-white/20">
+                                <p className="text-xs font-black uppercase tracking-[0.22em] text-blue-100">
+                                    Vocations sélectionnées
+                                </p>
+
+                                <div className="mt-3 flex flex-wrap gap-2">
+                                    {selectedVocations.map((item) => (
+                                        <span
+                                            key={item.value}
+                                            className="rounded-full bg-white px-4 py-2 text-xs font-black text-blue-700"
+                                        >
+                                            {item.label}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </section>
 
-                    {/* FORMULAIRE */}
-                    <section className="mt-8 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
-                        <div className="flex flex-col gap-4 border-b border-slate-100 px-7 py-6 md:flex-row md:items-center md:justify-between">
-                            <div className="flex items-center gap-4">
-                                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
-                                    <Layers3 size={26} />
-                                </div>
+                    <form onSubmit={submit} className="mt-8">
+                        <div className="overflow-visible rounded-[2rem] border border-slate-200 bg-white shadow-sm">
+                            <div className="border-b border-slate-100 p-7">
+                                <div className="flex items-start gap-4">
+                                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+                                        <Layers3 size={28} />
+                                    </div>
 
-                                <div>
-                                    <p className="text-xs font-black uppercase tracking-[0.28em] text-blue-600">
-                                        {t.formBadge}
-                                    </p>
+                                    <div>
+                                        <p className="text-sm font-black uppercase tracking-[0.28em] text-blue-600">
+                                            Formulaire principal
+                                        </p>
 
-                                    <h2 className="mt-1 text-2xl font-black text-blue-950">
-                                        {t.formTitle}
-                                    </h2>
+                                        <h2 className="mt-2 text-2xl font-black text-slate-950">
+                                            Informations de la vague
+                                        </h2>
 
-                                    <p className="mt-1 text-sm leading-7 text-slate-500">
-                                        {t.formDesc}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <form onSubmit={submit} className="p-7">
-                            <div className="grid gap-6 md:grid-cols-2">
-                                <div>
-                                    <Label>{t.year}</Label>
-                                    <Input
-                                        type="text"
-                                        value={form.data.annee}
-                                        onChange={(e) => form.setData('annee', e.target.value)}
-                                        placeholder={t.yearPlaceholder}
-                                    />
-                                    <Error message={form.errors.annee} />
-                                </div>
-
-                                <div>
-                                    <Label>{t.vocation}</Label>
-                                    <Input
-                                        type="text"
-                                        value={form.data.vocation}
-                                        onChange={(e) => form.setData('vocation', e.target.value)}
-                                        placeholder={t.vocationPlaceholder}
-                                    />
-                                    <Error message={form.errors.vocation} />
-                                </div>
-
-                                <div className="md:col-span-2">
-                                    <Label>{t.observation}</Label>
-                                    <Textarea
-                                        rows={7}
-                                        value={form.data.observation}
-                                        onChange={(e) => form.setData('observation', e.target.value)}
-                                        placeholder={t.observationPlaceholder}
-                                    />
-                                    <Error message={form.errors.observation} />
+                                        <p className="mt-2 text-sm font-medium leading-7 text-slate-500">
+                                            Choisissez les types d’établissements concernés par cette vague.
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="mt-8 flex flex-wrap justify-end gap-4">
-                                <button
-                                    type="button"
-                                    onClick={() => router.visit('/campagnes')}
-                                    className="rounded-2xl border border-slate-300 bg-white px-6 py-3 text-sm font-bold text-slate-700 transition hover:border-blue-600 hover:text-blue-600"
+                            <div className="grid gap-6 p-7 lg:grid-cols-2">
+                                <div>
+                                    <label className="mb-2 block text-sm font-black text-slate-700">
+                                        Année
+                                    </label>
+
+                                    <input
+                                        type="number"
+                                        value={data.annee}
+                                        onChange={(e) => setData('annee', e.target.value)}
+                                        className="h-14 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm font-bold text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                                    />
+
+                                    {errors.annee && (
+                                        <p className="mt-2 text-sm font-bold text-red-600">
+                                            {errors.annee}
+                                        </p>
+                                    )}
+                                </div>
+
+                                <div className="relative" ref={boxRef}>
+                                    <label className="mb-2 block text-sm font-black text-slate-700">
+                                        Vocation des établissements
+                                    </label>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setOpenVocationBox((prev) => !prev)}
+                                        className="flex h-14 w-full items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 text-left text-sm font-bold text-slate-700 outline-none transition hover:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                                    >
+                                        <span>
+                                            {selectedVocations.length === 0
+                                                ? 'Choisir les types des établissements'
+                                                : `${selectedVocations.length} type(s) sélectionné(s)`}
+                                        </span>
+
+                                        <ChevronDown size={20} className="text-slate-400" />
+                                    </button>
+
+                                    {errors.vocations && (
+                                        <p className="mt-2 text-sm font-bold text-red-600">
+                                            {errors.vocations}
+                                        </p>
+                                    )}
+
+                                    {openVocationBox && (
+                                        <div className="absolute left-0 right-0 top-[86px] z-50 overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-2xl shadow-slate-900/15">
+                                            <div className="max-h-[320px] overflow-y-auto p-3">
+                                                {normalizedVocations.length > 0 ? (
+                                                    normalizedVocations.map((item) => {
+                                                        const checked = data.vocations.includes(item.value);
+
+                                                        return (
+                                                            <button
+                                                                key={item.value}
+                                                                type="button"
+                                                                onClick={() => toggleVocation(item.value)}
+                                                                className={`mb-2 flex w-full items-center justify-between rounded-2xl px-4 py-4 text-left transition ${
+                                                                    checked
+                                                                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25'
+                                                                        : 'bg-slate-50 text-slate-700 hover:bg-blue-50'
+                                                                }`}
+                                                            >
+                                                                <div>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <p className="text-sm font-black">
+                                                                            {item.label}
+                                                                        </p>
+
+                                                                        {checked && (
+                                                                            <span className="rounded-full bg-white/20 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-white">
+                                                                                Sélectionné
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+
+                                                                    <p
+                                                                        className={`mt-1 text-xs font-bold ${
+                                                                            checked
+                                                                                ? 'text-blue-100'
+                                                                                : 'text-slate-400'
+                                                                        }`}
+                                                                    >
+                                                                        {item.count} établissement(s)
+                                                                    </p>
+                                                                </div>
+
+                                                                <div
+                                                                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 transition ${
+                                                                        checked
+                                                                            ? 'border-white bg-white text-blue-600'
+                                                                            : 'border-slate-300 bg-white text-transparent'
+                                                                    }`}
+                                                                >
+                                                                    <Check size={18} strokeWidth={4} />
+                                                                </div>
+                                                            </button>
+                                                        );
+                                                    })
+                                                ) : (
+                                                    <div className="flex min-h-[180px] flex-col items-center justify-center text-center">
+                                                        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+                                                            <Layers3 size={28} />
+                                                        </div>
+
+                                                        <p className="mt-3 text-sm font-black text-slate-950">
+                                                            Aucun type trouvé
+                                                        </p>
+
+                                                        <p className="mt-1 text-xs font-medium text-slate-500">
+                                                            Vérifiez les types dans la table établissements.
+                                                        </p>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="flex justify-end gap-2 border-t border-slate-100 p-4">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setData('vocations', [])}
+                                                    className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-black text-slate-600 transition hover:bg-slate-50"
+                                                >
+                                                    Effacer
+                                                </button>
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setOpenVocationBox(false)}
+                                                    className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-black text-white transition hover:bg-blue-700"
+                                                >
+                                                    Valider
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {selectedVocations.length > 0 && (
+                                        <div className="mt-3 flex flex-wrap gap-2">
+                                            {selectedVocations.map((item) => (
+                                                <button
+                                                    key={item.value}
+                                                    type="button"
+                                                    onClick={() => removeVocation(item.value)}
+                                                    className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-2 text-xs font-black text-blue-700 transition hover:bg-red-50 hover:text-red-600"
+                                                >
+                                                    {item.label}
+                                                    <X size={13} />
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="border-t border-slate-100 p-7">
+                                <label className="mb-2 block text-sm font-black text-slate-700">
+                                    Observation
+                                </label>
+
+                                <textarea
+                                    value={data.observation}
+                                    onChange={(e) => setData('observation', e.target.value)}
+                                    rows="6"
+                                    placeholder="Contexte de la vague, objectifs, consignes DEE, remarques générales..."
+                                    className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                                />
+
+                                {errors.observation && (
+                                    <p className="mt-2 text-sm font-bold text-red-600">
+                                        {errors.observation}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="flex flex-col justify-end gap-3 border-t border-slate-100 p-7 sm:flex-row">
+                                <Link
+                                    href="/dee/campagnes"
+                                    className="inline-flex h-14 items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 text-sm font-black text-slate-700 transition hover:bg-slate-50"
                                 >
-                                    {t.backToList}
-                                </button>
+                                    Retour aux vagues
+                                </Link>
 
                                 <button
                                     type="submit"
-                                    disabled={form.processing}
-                                    className="inline-flex items-center gap-2 rounded-2xl bg-[#223270] px-6 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-[#1b285a] disabled:opacity-60"
+                                    disabled={processing}
+                                    className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl bg-[#223270] px-8 text-sm font-black text-white shadow-lg shadow-blue-950/20 transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
                                 >
                                     <Save size={18} />
-                                    {form.processing ? '...' : t.createWave}
+                                    {processing ? 'Création...' : 'Créer la vague'}
                                 </button>
                             </div>
-                        </form>
-                    </section>
-                </main>
-
-                {/* FOOTER */}
-                <footer className="mt-10 bg-blue-950 pb-8 pt-20 text-white md:pt-24">
-                    <div className="mx-auto max-w-7xl px-4">
-                        <div className="mb-16 grid gap-12 border-b border-white/10 pb-16 sm:grid-cols-2 lg:grid-cols-4">
-                            <div>
-                                <span className="mb-6 flex items-center gap-3 text-3xl font-black tracking-tighter">
-                                    <img
-                                        src="/images/logo-aneaq.png"
-                                        alt="ANEAQ"
-                                        className="h-10 rounded bg-white p-1"
-                                        onError={(e) => {
-                                            e.currentTarget.style.display = 'none';
-                                        }}
-                                    />
-                                    ANEAQ
-                                </span>
-
-                                <p className="text-sm leading-relaxed text-blue-200/70">
-                                    Agence Nationale d’Evaluation et d’Assurance Qualité de
-                                    l’Enseignement Supérieur et de la Recherche Scientifique.
-                                </p>
-                            </div>
-
-                            <div>
-                                <h4 className="mb-6 text-lg font-bold text-white">
-                                    {t.footerNavigation}
-                                </h4>
-
-                                <ul className="space-y-4 text-sm font-medium text-blue-200/70">
-                                    <li>
-                                        <Link href="/dashboard" className="transition hover:text-white">
-                                            Dashboard
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link href="/campagnes" className="transition hover:text-white">
-                                            Vagues
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link href="/etablissements" className="transition hover:text-white">
-                                            Établissements
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link href="/experts" className="transition hover:text-white">
-                                            Experts
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link href="/dossiers" className="transition hover:text-white">
-                                            Dossiers
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link href="/workflow/visites" className="transition hover:text-white">
-                                            Visites
-                                        </Link>
-                                    </li>
-                                </ul>
-                            </div>
-
-                            <div className="lg:col-span-2">
-                                <h4 className="mb-6 text-lg font-bold text-white">
-                                    {t.footerContact}
-                                </h4>
-
-                                <div className="grid gap-8 sm:grid-cols-2">
-                                    <div className="space-y-5 text-sm text-blue-200/70">
-                                        <p>
-                                            05 Street Abou Inan Hassan,
-                                            <br />
-                                            Rabat - Morocco
-                                        </p>
-                                        <p>contact@aneaq.ma</p>
-                                    </div>
-
-                                    <div className="space-y-5 text-sm text-blue-200/70">
-                                        <p dir="ltr">+212 537 27 16 08</p>
-                                        <p dir="ltr">+212 537 27 16 07</p>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
-
-                        <div className="text-center text-xs font-semibold uppercase tracking-wider text-blue-200/40">
-                            <p>{t.rights}</p>
-                        </div>
-                    </div>
-                </footer>
+                    </form>
+                </div>
             </div>
         </>
     );
 }
 
-function HeroCard({ icon: Icon, label, value }) {
-    return (
-        <div className="rounded-[1.5rem] bg-white/12 p-5 backdrop-blur">
-            <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-white/15">
-                <Icon size={22} />
-            </div>
+Create.layout = (page) => <DashboardShell>{page}</DashboardShell>;
 
-            <p className="text-xs font-black uppercase tracking-[0.24em] text-blue-100">
-                {label}
-            </p>
-
-            <p className="mt-3 break-words text-sm font-black leading-6 text-white">
-                {value}
-            </p>
-        </div>
-    );
-}
-
-function Label({ children }) {
-    return (
-        <label className="mb-2 block text-sm font-bold text-slate-700">
-            {children}
-        </label>
-    );
-}
-
-function Input(props) {
-    return (
-        <input
-            {...props}
-            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm font-medium text-slate-800 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-        />
-    );
-}
-
-function Textarea(props) {
-    return (
-        <textarea
-            {...props}
-            className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm font-medium text-slate-800 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-        />
-    );
-}
-
-function Error({ message }) {
-    if (!message) return null;
-
-    return (
-        <p className="mt-2 text-sm font-semibold text-red-600">
-            {message}
-        </p>
-    );
-}
+export default Create;

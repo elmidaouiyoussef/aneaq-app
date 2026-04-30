@@ -39,7 +39,7 @@ export default function Recommandations({ dossiers = [] }) {
                                         <td className="px-6 py-4 text-slate-700">{dossier.statut}</td>
                                         <td className="px-6 py-4">
                                             <Link
-                                                href={`/dossiers/${dossier.id}`}
+                                                href={`/dee/dossiers/${dossier.id}`}
                                                 className="font-semibold text-blue-700 hover:text-blue-900"
                                             >
                                                 Suivre le dossier

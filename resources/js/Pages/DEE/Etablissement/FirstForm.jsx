@@ -22,7 +22,7 @@ export default function FirstForm({ etablissement, dossier, form }) {
                 action={
                     dossier?.id ? (
                         <Link
-                            href={`/dossiers/${dossier.id}`}
+                            href={`/dee/dossiers/${dossier.id}`}
                             className="rounded-xl bg-[#223270] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#1b285a]"
                         >
                             Accéder au dossier

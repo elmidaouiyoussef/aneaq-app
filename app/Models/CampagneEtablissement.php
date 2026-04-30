@@ -3,35 +3,28 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class CampagneEtablissement extends Model
 {
     protected $fillable = [
         'campagne_evaluation_id',
         'etablissement_id',
+        'status',
         'statut',
         'email',
         'access_sent_at',
+        'dossier_id',
+        'dossier_reference',
+        'created_by',
     ];
 
-    protected $casts = [
-        'access_sent_at' => 'datetime',
-    ];
-
-    public function campagne(): BelongsTo
+    public function campagne()
     {
         return $this->belongsTo(CampagneEvaluation::class, 'campagne_evaluation_id');
     }
 
-    public function etablissement(): BelongsTo
+    public function etablissement()
     {
         return $this->belongsTo(Etablissement::class, 'etablissement_id');
-    }
-
-    public function dossier(): HasOne
-    {
-        return $this->hasOne(Dossier::class, 'campagne_etablissement_id');
     }
 }

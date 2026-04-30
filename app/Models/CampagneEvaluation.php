@@ -3,8 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CampagneEvaluation extends Model
 {
@@ -14,21 +12,31 @@ class CampagneEvaluation extends Model
         'vocation',
         'observation',
         'statut',
+        'status',
         'created_by',
-        'created_by_name',
     ];
 
-    public function creator(): BelongsTo
+    public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function campagneEtablissements(): HasMany
+    public function campagneEtablissements()
     {
         return $this->hasMany(CampagneEtablissement::class, 'campagne_evaluation_id');
     }
 
-    public function dossiers(): HasMany
+    public function etablissements()
+    {
+        return $this->belongsToMany(
+            Etablissement::class,
+            'campagne_etablissements',
+            'campagne_evaluation_id',
+            'etablissement_id'
+        );
+    }
+
+    public function dossiers()
     {
         return $this->hasMany(Dossier::class, 'campagne_evaluation_id');
     }

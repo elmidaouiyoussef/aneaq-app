@@ -187,7 +187,7 @@ function Visites({ visites = [], stats = {} }) {
                                     </p>
 
                                     <Link
-                                        href="/dossiers"
+                                        href="/dee/dossiers"
                                         className="mt-6 inline-flex items-center gap-2 rounded-2xl bg-blue-600 px-6 py-3 text-sm font-black text-white transition hover:bg-blue-700"
                                     >
                                         <ClipboardList size={18} />
@@ -263,7 +263,7 @@ function Visites({ visites = [], stats = {} }) {
                                                     <td className="px-6 py-5">
                                                         <div className="flex justify-end">
                                                             <Link
-                                                                href={`/dossiers/${visite.id}`}
+                                                                href={`/dee/dossiers/${visite.id}`}
                                                                 className="inline-flex h-10 items-center gap-2 rounded-xl bg-blue-600 px-4 text-xs font-black text-white transition hover:bg-blue-700"
                                                             >
                                                                 <Eye size={16} />

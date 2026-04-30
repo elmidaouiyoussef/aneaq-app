@@ -40,7 +40,7 @@ export default function Comites({ onboardings = [] }) {
                                         <td className="px-6 py-4">
                                             {item.dossier?.id ? (
                                                 <Link
-                                                    href={`/dossiers/${item.dossier.id}`}
+                                                    href={`/dee/dossiers/${item.dossier.id}`}
                                                     className="font-semibold text-blue-700 hover:text-blue-900"
                                                 >
                                                     Ouvrir le dossier

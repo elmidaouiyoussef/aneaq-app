@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\DEE;
 
+use App\Http\Controllers\Controller;
 use App\Models\CampagneEvaluation;
 use App\Models\Dossier;
 use App\Models\Etablissement;
@@ -12,17 +13,19 @@ class AdminDashboardController extends Controller
 {
     public function index()
     {
-        $vaguesCount = CampagneEvaluation::count();
+        if (!auth()->check()) {
+            return redirect()->route('login');
+        }
+
+        if (auth()->user()->role !== 'admin_dee') {
+            abort(403, 'Accès refusé. Cette page est réservée à l’administrateur DEE.');
+        }
 
         return Inertia::render('DEE/AdminDashboard', [
             'stats' => [
                 'etablissements' => Etablissement::count(),
                 'experts' => Expert::count(),
-
-                // J'ai mis les deux noms pour éviter les bugs côté React
-                'vagues' => $vaguesCount,
-                'campagnes' => $vaguesCount,
-
+                'vagues' => CampagneEvaluation::count(),
                 'dossiers' => Dossier::count(),
                 'visites' => Dossier::whereNotNull('date_visite')->count(),
             ],
