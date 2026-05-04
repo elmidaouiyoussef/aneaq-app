@@ -9,6 +9,7 @@ class Expert extends Model
     protected $table = 'experts';
 
     protected $fillable = [
+        'user_id',
         'nom',
         'prenom',
         'date_naissance',
@@ -28,4 +29,14 @@ class Expert extends Model
         'responsabilite',
         'etablissement_et_annee_responsabilite',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function documents()
+    {
+        return $this->hasMany(ExpertDocument::class);
+    }
 }

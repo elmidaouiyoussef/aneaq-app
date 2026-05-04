@@ -132,10 +132,15 @@ class CampagneEtablissementController extends Controller
 
             $user->save();
 
+            if ($this->hasColumn('etablissements', 'user_id')) {
+                $etablissement->user_id = $user->id;
+            }
+
             if ($this->hasColumn('etablissements', 'email')) {
                 $etablissement->email = $validated['email'];
-                $etablissement->save();
             }
+
+            $etablissement->save();
 
             $dossier = $this->createOrGetDossier(
                 $campagneEvaluation,

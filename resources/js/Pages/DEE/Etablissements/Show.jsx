@@ -2,6 +2,7 @@ import { Head, Link } from '@inertiajs/react';
 import DashboardShell from '@/Layouts/DashboardShell';
 import {
     ArrowLeft,
+    ArrowUpRight,
     Building2,
     CalendarDays,
     ClipboardList,
@@ -10,6 +11,7 @@ import {
     Mail,
     MapPin,
     ShieldCheck,
+    Sparkles,
     UserCheck,
 } from 'lucide-react';
 
@@ -27,7 +29,7 @@ function Show({
             <Head title={`Historique - ${etablissement.nom}`} />
 
             <div className="min-h-screen bg-[#f6f8fc] px-4 py-10 sm:px-6 lg:px-8">
-                <div className="mx-auto max-w-[96rem]">
+                <div className="mx-auto max-w-[95rem]">
                     <div className="mb-8 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                         <div>
                             <p className="text-sm font-black uppercase tracking-[0.3em] text-blue-600">
@@ -38,9 +40,9 @@ function Show({
                                 {etablissement.nom}
                             </h1>
 
-                            <p className="mt-3 max-w-3xl text-sm font-medium leading-7 text-slate-500">
-                                Cette page affiche toutes les traces liées à cet établissement :
-                                vagues, dossiers, documents, experts et activités récentes.
+                            <p className="mt-3 max-w-4xl text-sm font-medium leading-7 text-slate-500">
+                                Vue complète des activités liées à cet établissement : vagues, dossiers,
+                                documents déposés, experts affectés et événements récents.
                             </p>
                         </div>
 
@@ -56,11 +58,12 @@ function Show({
                     <section className="overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-[#1d2b9f] via-[#2563eb] to-[#0891b2] text-white shadow-2xl shadow-blue-900/20">
                         <div className="grid gap-8 p-8 lg:grid-cols-[1fr_0.95fr] lg:p-10">
                             <div>
-                                <p className="text-sm font-black uppercase tracking-[0.28em] text-blue-100">
+                                <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-blue-100">
+                                    <Sparkles size={15} />
                                     Fiche établissement
-                                </p>
+                                </div>
 
-                                <h2 className="mt-4 text-5xl font-black tracking-tight">
+                                <h2 className="mt-6 text-5xl font-black tracking-tight">
                                     {etablissement.nom}
                                 </h2>
 
@@ -77,7 +80,7 @@ function Show({
                                 <StatGlass label="Vagues" value={stats.campagnes} />
                                 <StatGlass label="Dossiers" value={stats.dossiers} />
                                 <StatGlass label="Documents" value={stats.documents} />
-                                <StatGlass label="Experts" value={stats.experts} />
+                                <StatGlass label="Experts" value={stats.experts} wide />
                             </div>
                         </div>
                     </section>
@@ -88,6 +91,7 @@ function Show({
                                 icon={ClipboardList}
                                 kicker="Timeline"
                                 title="Toutes les activités"
+                                total={timeline.length}
                             />
 
                             <div className="mt-8 space-y-5">
@@ -110,6 +114,7 @@ function Show({
                                     <HistoryLine
                                         title={item.reference}
                                         description={`Année : ${item.annee} • Statut : ${item.statut}`}
+                                        date={item.created_at}
                                         url={item.campagne_id ? `/dee/campagnes/${item.campagne_id}` : null}
                                     />
                                 )}
@@ -123,6 +128,7 @@ function Show({
                                     <HistoryLine
                                         title={item.reference}
                                         description={`Statut : ${item.statut} • Date visite : ${item.date_visite || '—'}`}
+                                        date={item.created_at}
                                         url={`/dee/dossiers/${item.id}`}
                                     />
                                 )}
@@ -139,6 +145,7 @@ function Show({
                                 <HistoryLine
                                     title={item.nom}
                                     description={`Type : ${item.type} • Dossier : ${item.dossier_reference}`}
+                                    date={item.created_at}
                                     url={item.dossier_id ? `/dee/dossiers/${item.dossier_id}` : null}
                                 />
                             )}
@@ -152,6 +159,7 @@ function Show({
                                 <HistoryLine
                                     title={item.expert_name}
                                     description={`Rôle : ${formatRole(item.role)} • Statut : ${formatStatus(item.status)} • Dossier : ${item.dossier_reference}`}
+                                    date={item.created_at}
                                     url={item.dossier_id ? `/dee/dossiers/${item.dossier_id}` : null}
                                 />
                             )}
@@ -179,9 +187,9 @@ function InfoGlass({ icon: Icon, label, value }) {
     );
 }
 
-function StatGlass({ label, value }) {
+function StatGlass({ label, value, wide = false }) {
     return (
-        <div className="rounded-3xl bg-white/12 p-6 backdrop-blur">
+        <div className={`rounded-3xl bg-white/12 p-6 backdrop-blur ${wide ? 'sm:col-span-2' : ''}`}>
             <p className="text-xs font-black uppercase tracking-[0.22em] text-blue-100">
                 {label}
             </p>
@@ -193,31 +201,37 @@ function StatGlass({ label, value }) {
     );
 }
 
-function SectionTitle({ icon: Icon, kicker, title }) {
+function SectionTitle({ icon: Icon, kicker, title, total }) {
     return (
-        <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
-                <Icon size={26} />
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-4">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+                    <Icon size={26} />
+                </div>
+
+                <div>
+                    <p className="text-sm font-black uppercase tracking-[0.25em] text-blue-600">
+                        {kicker}
+                    </p>
+
+                    <h2 className="mt-1 text-2xl font-black text-slate-950">
+                        {title}
+                    </h2>
+                </div>
             </div>
 
-            <div>
-                <p className="text-sm font-black uppercase tracking-[0.25em] text-blue-600">
-                    {kicker}
-                </p>
-
-                <h2 className="mt-1 text-2xl font-black text-slate-950">
-                    {title}
-                </h2>
-            </div>
+            <span className="inline-flex rounded-full bg-slate-100 px-4 py-2 text-sm font-black text-slate-500">
+                Total : {total ?? 0}
+            </span>
         </div>
     );
 }
 
 function TimelineItem({ item }) {
     const content = (
-        <div className="relative rounded-3xl border border-slate-200 bg-slate-50 p-6 transition hover:border-blue-200 hover:bg-blue-50/50">
+        <div className="relative rounded-3xl border border-slate-200 bg-slate-50 p-6 transition hover:border-blue-200 hover:bg-blue-50/60">
             <div className="flex items-start gap-5">
-                <div className="mt-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-600 text-white">
+                <div className="mt-1 flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-600 text-sm font-black text-white">
                     {iconLetter(item.type)}
                 </div>
 
@@ -236,16 +250,16 @@ function TimelineItem({ item }) {
                         {item.description}
                     </p>
                 </div>
+
+                {item.url && (
+                    <ArrowUpRight size={18} className="mt-2 text-blue-500" />
+                )}
             </div>
         </div>
     );
 
     if (item.url) {
-        return (
-            <Link href={item.url}>
-                {content}
-            </Link>
-        );
+        return <Link href={item.url}>{content}</Link>;
     }
 
     return content;
@@ -254,19 +268,21 @@ function TimelineItem({ item }) {
 function HistoryCard({ title, icon: Icon, items, renderItem }) {
     return (
         <section className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
-            <div className="flex items-center gap-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
-                    <Icon size={26} />
-                </div>
+            <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+                        <Icon size={26} />
+                    </div>
 
-                <div>
-                    <h2 className="text-2xl font-black text-slate-950">
-                        {title}
-                    </h2>
+                    <div>
+                        <h2 className="text-2xl font-black text-slate-950">
+                            {title}
+                        </h2>
 
-                    <p className="mt-1 text-sm font-semibold text-slate-400">
-                        Total : {items.length}
-                    </p>
+                        <p className="mt-1 text-sm font-semibold text-slate-400">
+                            Total : {items.length}
+                        </p>
+                    </div>
                 </div>
             </div>
 
@@ -285,16 +301,26 @@ function HistoryCard({ title, icon: Icon, items, renderItem }) {
     );
 }
 
-function HistoryLine({ title, description, url }) {
+function HistoryLine({ title, description, date, url }) {
     const content = (
         <div className="rounded-3xl bg-slate-50 p-5 transition hover:bg-blue-50">
-            <p className="font-black text-slate-950">
-                {title || '—'}
-            </p>
+            <div className="flex items-start justify-between gap-4">
+                <div>
+                    <p className="font-black text-slate-950">
+                        {title || '—'}
+                    </p>
 
-            <p className="mt-2 text-sm font-medium leading-6 text-slate-500">
-                {description}
-            </p>
+                    <p className="mt-2 text-sm font-medium leading-6 text-slate-500">
+                        {description}
+                    </p>
+
+                    <p className="mt-3 text-xs font-black uppercase tracking-[0.16em] text-slate-400">
+                        {date || 'Date non définie'}
+                    </p>
+                </div>
+
+                {url && <ArrowUpRight size={18} className="text-blue-500" />}
+            </div>
         </div>
     );
 

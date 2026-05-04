@@ -14,6 +14,7 @@ import {
     Printer,
     Globe,
     LogIn,
+    LogOut,
     X,
 } from 'lucide-react';
 import {
@@ -307,12 +308,41 @@ export default function Welcome({ auth }) {
                         </button>
 
                         {currentUser ? (
-                            <Link
-                                href={dashboardUrl}
-                                className="rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-600/30 transition-all hover:bg-blue-700 active:scale-95"
-                            >
-                                {currentUser.role === 'admin_dee' ? t.nav_dashboard : currentUser.name}
-                            </Link>
+                            <div className="flex items-center gap-2">
+                                <Link
+                                    href={dashboardUrl}
+                                    className="rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-600/30 transition-all hover:bg-blue-700 active:scale-95"
+                                >
+                                    {currentUser.role === 'admin_dee' ? t.nav_dashboard : currentUser.name}
+                                </Link>
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
+                                <Link
+                                    href={route('logout')}
+                                    method="post"
+                                    as="button"
+<<<<<<< Updated upstream
+                                    className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold shadow-lg transition-all active:scale-95 ${
+                                        isSticky
+                                            ? 'bg-red-50 text-red-600 hover:bg-red-100'
+                                            : 'bg-white/10 text-white hover:bg-white/20'
+                                    }`}
+                                >
+                                    <LogOut size={16} />
+=======
+                                    title="Se déconnecter"
+                                    className={`flex h-10 w-10 items-center justify-center rounded-xl text-white shadow-lg transition-all active:scale-95 ${
+                                        isSticky
+                                            ? 'bg-red-600 shadow-red-600/20 hover:bg-red-700'
+                                            : 'bg-red-600/90 shadow-red-900/20 hover:bg-red-700'
+                                    }`}
+                                >
+                                    <LogOut size={18} />
+>>>>>>> Stashed changes
+                                </Link>
+                            </div>
                         ) : (
                             <button
                                 type="button"
@@ -556,7 +586,7 @@ export default function Welcome({ auth }) {
                                 Répartition annuelle des missions d'évaluation
                             </p>
 
-                            <div className="w-full flex-grow min-h-[350px]">
+                            <div className="min-h-[350px] w-full flex-grow">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart
                                         data={chartData}

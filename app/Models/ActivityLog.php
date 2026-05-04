@@ -9,8 +9,16 @@ class ActivityLog extends Model
     protected $fillable = [
         'user_id',
         'action',
-        'description',
-        'target_type',
-        'target_id',
+        'model_type',
+        'model_id',
+        'model_name',
+        'performed_by',
+        'role',
+        'details',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }
